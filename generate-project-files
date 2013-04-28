@@ -1,0 +1,10 @@
+#!/bin/bash
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+./third_party/gyp/gyp \
+    --depth=. \
+    --generator-output=build \
+    -G msvs_version=2012e \
+    -f make \
+    -f xcode \
+    -f msvs
+echo "Note: the 'Missing input file' and 'not yet implemented key 'ARCHS'' warnings can be ignored."

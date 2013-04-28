@@ -1,0 +1,6 @@
+#!/bin/bash
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+export CC=clang
+export CXX=clang++
+cd build
+make "$@"

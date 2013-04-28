@@ -1,0 +1,6 @@
+[submodule "third_party/mongoose"]
+	path = third_party/mongoose
+	url = https://github.com/valenok/mongoose.git
+[submodule "third_party/gyp"]
+	path = third_party/gyp
+	url = https://chromium.googlesource.com/external/gyp.git
