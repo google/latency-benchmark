@@ -22,12 +22,6 @@
             'src/win/main.cpp',
             'src/win/screenscraper.cpp',
           ],
-          'libraries': [
-            'gdi32.lib',
-            'user32.lib',
-            'ole32.lib',
-            'shell32.lib',
-          ]
         }],
         ['OS=="mac"', {
           'sources': [
