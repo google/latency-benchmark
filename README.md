@@ -23,7 +23,7 @@ Python 2.x is required on all platforms for GYP, which generates the build files
 First, you need to `git submodule init && git submodule update` to fetch the submodules in third_party. Then, you need to run `generate-project-files`, which will run GYP and generate platform-specific project files in build/.
 
 * Windows: Open `build/latency-benchmark.sln`.
-* Mac: Open `build/latency-benchmark.xcodeproj`. For debugging you will need to edit the default scheme to launch the `latency-test` executable, with a current directory of `$(PROJECT_DIR)` so it can find the HTML files. You will also want to [configure the debugger to ignore SIGPIPE](http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals).
+* Mac: Open `build/latency-benchmark.xcodeproj`. For debugging you will need to edit the default scheme to change the working directory of the `latency-test` executable to `$(PROJECT_DIR)` so it can find the HTML files. You will also want to [configure the debugger to ignore SIGPIPE](http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals).
 * Linux: Run the script `linux-build` to compile with Clang. The binary will be built at `build/out/Debug/latency-benchmark`. Run it in the top-level directory so it can find the HTML files. You can build the release version by defining the environment variable `BUILDTYPE=Release`.
 
 You shouldn't make any changes to the XCode or Visual Studio project files directly. Instead, you should edit `latency-benchmark.gyp` to reflect the changes you want, and re-run the `generate-project-files` script to update the project files with the changes. This ensures that the project files stay in sync across platforms.

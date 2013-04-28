@@ -63,7 +63,7 @@
             'Optimization': '0', # optimizeDisabled (/Od)
           },
         },
-        'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL': 0 } # -O0 No optimization
+        'xcode_settings': {'GCC_OPTIMIZATION_LEVEL': 0 } # -O0 No optimization
       },
       'Release': {
         'defines': [ 'NDEBUG' ],
@@ -105,5 +105,22 @@
         'SubSystem': '2' # Windows
       },
     },
+    'xcode_settings': {
+      'COMBINE_HIDPI_IMAGES': 'YES',
+    },
   },
+
+  'conditions': [
+    ['OS=="mac"',
+      # The XCode project generator automatically adds a bogus "All" target with bad xcode_settings unless we define one here.
+      {
+        'targets': [
+          {
+            'target_name': 'All',
+            'type': 'static_library',
+          },
+        ],
+      },
+    ],
+  ],
 }
