@@ -8,7 +8,6 @@
         'src/latency-benchmark.h',
         'src/screenscraper.h',
         'src/server.c',
-        'src/server.h',
       ],
       'dependencies': [
         'mongoose',
