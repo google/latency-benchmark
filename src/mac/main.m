@@ -21,10 +21,11 @@ void run_server(void);
 
 int main(int argc, char *argv[])
 {
-    // SIGPIPE will terminate the process if we write to a closed socket, unless we disable it like so.
-    // Note that GDB/LLDB will stop on SIGPIPE anyway unless you configure them not to.
-    // http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals
-    signal(SIGPIPE, SIG_IGN);
-    run_server();
-    return 0;
+  // SIGPIPE will terminate the process if we write to a closed socket, unless
+  // we disable it like so. Note that GDB/LLDB will stop on SIGPIPE anyway
+  // unless you configure them not to.
+  // http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals
+  signal(SIGPIPE, SIG_IGN);
+  run_server();
+  return 0;
 }

@@ -41,7 +41,8 @@ static int clamp(int value, int minimum, int maximum) {
 }
 
 
-screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width,
+    uint32_t height) {
   if (!display) {
     display = XOpenDisplay(NULL);
   }
@@ -51,7 +52,8 @@ screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width, uint32_t hei
   int display_x, display_y;
   unsigned int display_width, display_height, border_width, display_depth;
   Window root;
-  XGetGeometry(display, RootWindow(display, 0), &root, &display_x, &display_y, &display_width, &display_height, &border_width, &display_depth);
+  XGetGeometry(display, RootWindow(display, 0), &root, &display_x, &display_y,
+      &display_width, &display_height, &border_width, &display_depth);
   // TODO: can these be non-zero?
   assert(display_x == 0);
   assert(display_y == 0);
@@ -63,7 +65,8 @@ screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width, uint32_t hei
     debug_log("screenshot rect empty");
     return NULL;
   }
-  XImage *image = XGetImage(display, RootWindow(display, 0), x, y, clamped_width, clamped_height, AllPlanes, ZPixmap);
+  XImage *image = XGetImage(display, RootWindow(display, 0), x, y,
+      clamped_width, clamped_height, AllPlanes, ZPixmap);
   assert(image);
   assert(image->width == clamped_width);
   assert(image->height == clamped_height);
@@ -125,12 +128,14 @@ bool send_scroll_down(int x, int y) {
   if (!x_test_extension_queried) {
     x_test_extension_queried = true;
     int ignored;
-    x_test_extension_available = XTestQueryExtension(display, &ignored, &ignored, &ignored, &ignored);
+    x_test_extension_available = XTestQueryExtension(display, &ignored,
+        &ignored, &ignored, &ignored);
   }
   if (!x_test_extension_available) {
     debug_log("XTest extension not available.");
     return false;
-    // TODO: figure out why XSendEvent isn't working. XTest shouldn't be required.
+    // TODO: figure out why XSendEvent isn't working. XTest shouldn't be
+    // required.
     // XButtonEvent event;
     // memset(&event, 0, sizeof(XButtonEvent));
     // Window focused;
@@ -143,7 +148,8 @@ bool send_scroll_down(int x, int y) {
     // event.time = CurrentTime;
     // event.same_screen = True;
     // event.type = ButtonPress;
-    // // TODO: calculate these correctly, they should be relative to the focused window
+    // // TODO: calculate these correctly, they should be relative to the
+    // // focused window
     // event.x = x;
     // event.y = y;
     // event.x_root = 1;
@@ -172,18 +178,19 @@ int64_t get_nanoseconds() {
   struct timeval current_time, difference;
   gettimeofday(&current_time, NULL);
   timersub(&current_time, &start_time, &difference);
-  return ((int64_t)difference.tv_sec) * nanoseconds_per_second + ((int64_t)difference.tv_usec) * nanoseconds_per_microsecond;
+  return ((int64_t)difference.tv_sec) * nanoseconds_per_second +
+      ((int64_t)difference.tv_usec) * nanoseconds_per_microsecond;
 }
 
 
 void debug_log(const char *message, ...) {
 #ifndef NDEBUG
-    va_list list;
-    va_start(list, message);
-    vprintf(message, list);
-    va_end(list);
-    putchar('\n');
-    fflush(stdout);
+  va_list list;
+  va_start(list, message);
+  vprintf(message, list);
+  va_end(list);
+  putchar('\n');
+  fflush(stdout);
 #endif
 }
 
@@ -197,9 +204,11 @@ bool open_browser(const char *url) {
 }
 
 bool open_control_window() {
-    return false;
+  // TODO
+  return false;
 }
 
 bool close_control_window() {
+  // TODO
   return false;
 }
