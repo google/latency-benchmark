@@ -5,7 +5,10 @@
       'type': 'executable',
       'sources': [
         'src/latency-benchmark.c',
+        'src/latency-benchmark.h',
         'src/screenscraper.h',
+        'src/server.c',
+        'src/server.h',
       ],
       'dependencies': [
         'mongoose',
