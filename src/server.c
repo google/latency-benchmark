@@ -36,6 +36,9 @@ static bool check_url_returns_HTTP_200(char *host, int port, char *path) {
   struct mg_connection *connection = mg_download(host, port,
       /* use_ssl */ false, error_buffer, sizeof(error_buffer),
       "HEAD %s HTTP/1.0\r\n\r\n", path);
+  if (!connection) {
+    return false;
+  }
   // Mongoose stores the HTTP response code in the URI field of the
   // mg_request_info struct, strangely.
   struct mg_request_info *response = mg_get_request_info(connection);
@@ -117,7 +120,8 @@ static bool is_latency_test_request(const struct mg_request_info *request_info,
           int hex_index = (i - i / 4) * 2;
           assert(hex_index < hex_pattern_length);
           int current_byte;
-          int num_parsed = sscanf(hex_pattern + hex_index, "%2x", &current_byte);
+          int num_parsed = sscanf(hex_pattern + hex_index, "%2x",
+              &current_byte);
           failed |= 1 != num_parsed;
           magic_pattern[i] = current_byte;
         }
@@ -137,8 +141,9 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
   const struct mg_request_info *request_info = mg_get_request_info(connection);
   uint8_t magic_pattern[pattern_magic_bytes];
   if (is_latency_test_request(request_info, magic_pattern)) {
-    // This is an XMLHTTPRequest made by JavaScript to measure latency in a browser window.
-    // magic_pattern has been filled in with a pixel pattern to look for.
+    // This is an XMLHTTPRequest made by JavaScript to measure latency in a
+    // browser window. magic_pattern has been filled in with a pixel pattern to
+    // look for.
     report_latency(connection, magic_pattern);
     return 1;  // Mark as processed
   } else if (strcmp(request_info->uri, "/keepServerAlive") == 0) {
@@ -165,7 +170,11 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
               "Cache-Control: no-cache\r\n\r\n");
     const int error_buffer_size = 10000;
     char error_buffer[error_buffer_size];
-    if (mg_get_var(request_info->query_string, strlen(request_info->query_string), "error", error_buffer, error_buffer_size) > 0) {
+    if (mg_get_var(request_info->query_string,
+                   strlen(request_info->query_string),
+                   "error",
+                   error_buffer,
+                   error_buffer_size) > 0) {
       mg_printf(connection, "Error: %s", error_buffer);
     }
     mg_printf(connection, "\n\nServer exiting.");
@@ -184,7 +193,8 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
     return 1;
   } else {
     // This request doesn't look special.
-    // Pass the request on to mongoose for default handling (file serving, or 404).
+    // Pass the request on to mongoose for default handling (file serving, or
+    // 404).
     return 0;
   }
 }
@@ -199,7 +209,8 @@ void run_server() {
     "document_root", "html",
     // Forbid everyone except localhost.
     "access_control_list", "-0.0.0.0/0,+127.0.0.0/8",
-    // We have a lot of concurrent long-lived requests, so start a lot of threads to make sure we can handle them all.
+    // We have a lot of concurrent long-lived requests, so start a lot of
+    // threads to make sure we can handle them all.
     "num_threads", "100",
     NULL
   };
@@ -214,9 +225,15 @@ void run_server() {
   usleep(0);
 
   // Check that the server is operating properly.
-  if (!check_url_returns_HTTP_200("localhost", 5578, "/") || !check_url_returns_HTTP_200("localhost", 5578, "/latency-benchmark.html") || !check_url_returns_HTTP_200("localhost", 5578, "/latency-benchmark.js")) {
+ if (!check_url_returns_HTTP_200("localhost", 5578, "/") ||
+     !check_url_returns_HTTP_200("localhost", 5578,
+                                 "/latency-benchmark.html") ||
+     !check_url_returns_HTTP_200("localhost", 5578, "/latency-benchmark.js")) {
     // Show an error to the user.
-    if (!open_browser("http://localhost:5578/quit?error=Could%20not%20locate%20test%20HTML%20files.%20The%20test%20HTML%20files%20must%20be%20located%20in%20a%20directory%20named%20'html'%20next%20to%20the%20server%20executable.")) {
+    if (!open_browser("http://localhost:5578/quit?error=Could%20not%20locate%20"
+                      "test%20HTML%20files.%20The%20test%20HTML%20files%20must%"
+                      "20be%20located%20in%20a%20directory%20named%20'html'%20n"
+                      "ext%20to%20the%20server%20executable.")) {
       debug_log("Failed to open browser.");
     }
     // Wait for the error message to be displayed.

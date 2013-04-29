@@ -17,27 +17,39 @@
 var delayedTests = [];
 
 var info = function(test, text) {
-  test.infoCell.textContent = text;
-  runNextTest(test);
+  if (!test.resultPresented) {
+    test.resultPresented = true;
+    test.infoCell.textContent = text;
+    runNextTest(test);
+  }
 };
 
 var pass = function(test, text) {
-  test.resultCell.className += ' passed';
-  test.resultCell.textContent = '✓';
-  test.infoCell.textContent = text || '';
-  runNextTest(test);
+  if (!test.resultPresented) {
+    test.resultPresented = true;
+    test.resultCell.className += ' passed';
+    test.resultCell.textContent = '✓';
+    test.infoCell.textContent = text || '';
+    runNextTest(test);
+  }
 };
 var fail = function(test, text) {
-  test.resultCell.className += ' failed';
-  test.resultCell.textContent = '✗';
-  test.infoCell.textContent = text || '';
-  runNextTest(test);
+  if (!test.resultPresented) {
+    test.resultPresented = true;
+    test.resultCell.className += ' failed';
+    test.resultCell.textContent = '✗';
+    test.infoCell.textContent = text || '';
+    runNextTest(test);
+  }
 };
 var error = function(test, text) {
-  test.resultCell.className += ' testError';
-  test.resultCell.textContent = '✗';
-  test.infoCell.textContent = text || 'test error';
-  runNextTest(test);
+  if (!test.resultPresented) {
+    test.resultPresented = true;
+    test.resultCell.className += ' testError';
+    test.resultCell.textContent = '✗';
+    test.infoCell.textContent = text || 'test error';
+    runNextTest(test);
+  }
 };
 
 var checkName = function() {
@@ -237,14 +249,19 @@ giantImageContainer.style.position = 'fixed';
 giantImageContainer.style.top = '5px';
 giantImageContainer.style.left = '5px';
 giantImageContainer.style.zIndex = 1;
+// Ideally we'd use more hosts, but OS X only has one loopback address by
+// default.
+// TODO: Figure out a way to add more hosts to this test on OS X to get more
+// images loading concurrently.
+var hosts = ['http://localhost'];
 document.body.appendChild(giantImageContainer);
 // TODO: Detect unreported failed image loads (Mac Chrome) with screenshotting.
 var loadGiantImage = function() {
   var test = this;
   if (test.iteration == 10) {
     for (var i = 0; i < giantImages.length; i++) {
-      // Use a random number for each request to defeat caching. Change hosts every 4 images to defeat HTTP request throttling.
-      giantImages[i].src = 'http://127.0.0.' + Math.floor(i / 2 + 1) + ':5578/1024.png?randomNumber=' + Math.random();
+      // Use a random number for each request to defeat caching. Change hosts for each image to defeat HTTP request throttling.
+      giantImages[i].src = hosts[i % hosts.length] + ':5578/2048.png?randomNumber=' + Math.random();
     }
   }
   var done = true;
@@ -259,6 +276,7 @@ var loadGiantImage = function() {
     for (var i = 0; i < giantImages.length; i++) {
       if (giantImages[i].failed) {
         error(test, 'Image failed to load.');
+        test.finished = true;
         return;
       }
     }

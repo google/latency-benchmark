@@ -159,7 +159,8 @@ static bool update_statistic(statistic *stat, int value, int64_t screenshot_time
   int64_t screenshot_duration = screenshot_time - previous_screenshot_time;
   if (lower_bound_time <= 0) {
     debug_log("%s: Didn't get a screenshot before response.", stat->name);
-  } else if (screenshot_duration > 20 * nanoseconds_per_millisecond && lower_bound_time < 5 * nanoseconds_per_millisecond) {
+  } else if (screenshot_duration > 20 * nanoseconds_per_millisecond &&
+             lower_bound_time < 5 * nanoseconds_per_millisecond) {
     debug_log("%s: Ignoring measurement due to slow screenshot.", stat->name);
   } else {
     // Record the measurement.
@@ -167,7 +168,8 @@ static bool update_statistic(statistic *stat, int value, int64_t screenshot_time
     stat->upper_bound_time += screenshot_time - stat->previous_change_time;
     stat->lower_bound_time += lower_bound_time;
     if (lower_bound_time > stat->max_lower_bound) {
-      debug_log("%s: updated max_lower_bound to %f", stat->name, lower_bound_time / (double)nanoseconds_per_millisecond);
+      debug_log("%s: updated max_lower_bound to %f", stat->name,
+          lower_bound_time / (double)nanoseconds_per_millisecond);
       stat->max_lower_bound = lower_bound_time;
     }
   }
@@ -198,7 +200,8 @@ static double lower_bound_ms(statistic *stat) {
 }
 
 // Initializes a statistic struct.
-static void init_statistic(char *name, statistic *stat, int value, int64_t start_time) {
+static void init_statistic(char *name, statistic *stat, int value,
+    int64_t start_time) {
   memset(stat, 0, sizeof(statistic));
   stat->value = value;
   stat->previous_change_time = start_time;
