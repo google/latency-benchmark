@@ -10,7 +10,9 @@ The Web Latency Benchmark is not complete and is under active development. Resul
 
 ## How to build/run
 
-Pre-built binaries are available here: http://google.github.io/latency-benchmark/latency-benchmark.zip
+### Running the benchmark
+
+[This zip file](http://google.github.io/latency-benchmark/latency-benchmark.zip) includes everything you need to run the benchmark on Windows, Mac, and Linux. Just [download](http://google.github.io/latency-benchmark/latency-benchmark.zip), extract all files, and run the executable for your platform.
 
 ### Build prerequisites
 
