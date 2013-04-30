@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Latency-benchmark by google</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Latency-benchmark</h1>
+        <p>Tests web browser input latency and jank</p>
+
+        <p class="view"><a href="https://github.com/google/latency-benchmark">View the Project on GitHub <small>google/latency-benchmark</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/google/latency-benchmark/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/google/latency-benchmark/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/google/latency-benchmark">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>Web Latency Benchmark</h1>
+
+<p>The Web Latency Benchmark measures <em>input</em> latency: that is, the time between when an input event (such as a mouse click) is received by the browser, and when the browser responds by drawing to the screen. It also quantifies jank by measuring how many frames of animation the browser skips while performing tasks such as image loading or executing JavaScript.</p>
+
+<p>This is different from benchmarks like SunSpider which measure raw JavaScript execution speed but aren't sensitive to latency and jank. Latency and jank determine how responsive a browser feels in use, and are very important for HTML5 games and rich web apps, but aren't well tested by existing benchmarks because they can't be measured by JavaScript alone. The Web Latency Benchmark uses a local server to perform the latency measurements.</p>
+
+<h2>Disclaimer</h2>
+
+<p>The Web Latency Benchmark is not complete and is under active development. Results should not be considered definitive. The intended audience is currently only web browser developers.</p>
+
+<h2>How to build/run</h2>
+
+<h3>Build prerequisites</h3>
+
+<p>Python 2.x is required on all platforms for GYP, which generates the build files.</p>
+
+<ul>
+<li>Windows: GYP is currently configured to generate project files for Visual Studio 2012 (Express works). 2010 might work too if you edit generate-project-files.bat to change the version. The Windows 8 SDK is required due to the use of DXGI 1.2. It can be installed on Windows 7 and Windows Vista.</li>
+<li>Mac: XCode 4 is required.</li>
+<li>Linux: Clang is required. The benchmark does not compile with GCC. The only other requirement should be X11 development headers and libraries, in the xorg-dev package on Debian/Ubuntu.</li>
+</ul><h3>Build steps</h3>
+
+<p>First, you need to <code>git submodule init &amp;&amp; git submodule update</code> to fetch the submodules in third_party. Then, you need to run <code>generate-project-files</code>, which will run GYP and generate platform-specific project files in build/.</p>
+
+<ul>
+<li>Windows: Open <code>build/latency-benchmark.sln</code>.</li>
+<li>Mac: Open <code>build/latency-benchmark.xcodeproj</code>. For debugging you will need to edit the default scheme to change the working directory of the <code>latency-test</code> executable to <code>$(PROJECT_DIR)</code> so it can find the HTML files. You will also want to <a href="http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals">configure the debugger to ignore SIGPIPE</a>.</li>
+<li>Linux: Run the script <code>linux-build</code> to compile with Clang. The binary will be built at <code>build/out/Debug/latency-benchmark</code>. Run it in the top-level directory so it can find the HTML files. You can build the release version by defining the environment variable <code>BUILDTYPE=Release</code>.</li>
+</ul><p>You shouldn't make any changes to the XCode or Visual Studio project files directly. Instead, you should edit <code>latency-benchmark.gyp</code> to reflect the changes you want, and re-run the <code>generate-project-files</code> script to update the project files with the changes. This ensures that the project files stay in sync across platforms.</p>
+
+<h2>How it works</h2>
+
+<p>The Web latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.</p>
+
+<p>There are two main components: the latency-benchmark server (written in C/C++) and the HTML/JavaScript benchmark page. The HTML page draws a special pattern of pixels to the screen using WebGL or Canvas 2D, then makes an XMLHTTPRequest to the server to start the latency measurement. The server locates the browser window by searching a screenshot for the special pattern. Once the browser window is located, the server starts sending input events. Each time the HTML page recieves an input event it encodes that information into pixels in the on-screen pattern, drawn using the canvas element. Meanwhile the server is taking screenshots every few milliseconds. By decoding the pixel pattern the server can determine to within a few milliseconds how long it takes the browser to respond to each input event.</p>
+
+<h2>License and distribution</h2>
+
+<p>The Web Latency Benchmark is licensed under the Apache License version 2.0. This is an open source project; it is not an official Google product.</p>
+
+<h2>TODO</h2>
+
+<ul>
+<li>Improve the styling and presentation of the test pages and add more explanation about what each test is doing.</li>
+<li>Embed the test HTML/JS into the executable for release builds for easier distribution.</li>
+<li>Windows has a partial implementation of a "reference window" which implements the tests in pure C++ to establish a lower bound on what kind of latency is possible to achieve. (See the open_control_window function.) This should be integrated into the main test page and implemented on the other platforms too.</li>
+<li>Defend against non-test webpages making XMLHttpRequests to the server (a possible security issue, since the screenshotting code isn't security audited).</li>
+<li>Clean up latency-benchmark.html and latency-benchmark.js. Separate the JavaScript into more files.</li>
+<li>Find a way to share constants like the test timeout between JS and C.</li>
+<li>Test more causes of jank: audio/video loading, plugins, JS parsing, JS execution, GC, worker GC, worker JS parsing/execution, HTML parsing, CSS parsing, layout, DNS resolution, window resizing, image resizing, XHR starting/ending, plus all of the above in an iframe or popup.</li>
+<li>IE9 doesn't support typed arrays; support it anyway using a polyfill for typed arrays.</li>
+<li>Support Windows Vista. Look into IE7/8 support with a polyfill for 2D canvas.</li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/google">google</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
