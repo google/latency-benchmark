@@ -350,25 +350,23 @@ var cpuLoad = function() {
 
 var element = document.documentElement;
 var style = element.style;
-var table = document.createElement('table');
-table.id = 'tests';
-document.body.appendChild(table);
+var table = document.getElementById('tests');
 var tests = [
-  // { name: 'Keydown latency',
-  //   info: 'Tests the delay from keypress to on-screen response.',
-  //   test: inputLatency },
-  // { name: 'Scroll latency',
-  //   info: 'Tests the delay from mousewheel movement to on-screen response.',
-  //   test: scrollLatency },
-  // { name: 'Baseline jank',
-  //   info: 'Tests responsiveness while the browser is idle.',
-  //   test: testJank, blocker: control, report: ['css', 'js', 'scroll'] },
-  { name: 'Image loading jank',
-    info: 'Tests responsiveness during image loading.',
-    test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
+  { name: 'Keydown latency',
+    info: 'Tests the delay from keypress to on-screen response.',
+    test: inputLatency },
+  { name: 'Scroll latency',
+    info: 'Tests the delay from mousewheel movement to on-screen response.',
+    test: scrollLatency },
+  { name: 'Baseline jank',
+    info: 'Tests responsiveness while the browser is idle.',
+    test: testJank, blocker: control, report: ['css', 'js', 'scroll'] },
   { name: 'JavaScript jank',
     info: 'Tests responsiveness during JavaScript execution.',
     test: testJank, blocker: cpuLoad, report: ['css', 'scroll'] },
+  { name: 'Image loading jank',
+    info: 'Tests responsiveness during image loading.',
+    test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
 
   // These tests work, but are disabled for now to focus on the latency test.
   // { name: 'requestAnimationFrame', test: checkName, toCheck: 'requestAnimationFrame' },
