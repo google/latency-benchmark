@@ -1,6 +1,6 @@
-# Web Latency Benchmark
+![Screenshot](http://google.github.io/latency-benchmark/screenshot.png "Web Latency Benchmark")
 
-The Web Latency Benchmark measures *input* latency: that is, the time between when an input event (such as a mouse click) is received by the browser, and when the browser responds by drawing to the screen. It also quantifies jank by measuring how many frames of animation the browser skips while performing tasks such as image loading or executing JavaScript.
+This benchmark measures *input* latency: that is, the time between when an input event (such as a mouse click) is received by the browser, and when the browser responds by drawing to the screen. It also quantifies jank by measuring how many frames of animation the browser skips while performing tasks such as image loading or executing JavaScript.
 
 This is different from benchmarks like SunSpider which measure raw JavaScript execution speed but aren't sensitive to latency and jank. Latency and jank determine how responsive a browser feels in use, and are very important for HTML5 games and rich web apps, but aren't well tested by existing benchmarks because they can't be measured by JavaScript alone. The Web Latency Benchmark uses a local server to perform the latency measurements.
 
