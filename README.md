@@ -10,6 +10,8 @@ The Web Latency Benchmark is not complete and is under active development. Resul
 
 ## How to build/run
 
+Pre-built binaries are available here: http://google.github.io/latency-benchmark/latency-benchmark.zip
+
 ### Build prerequisites
 
 Python 2.x is required on all platforms for GYP, which generates the build files.
