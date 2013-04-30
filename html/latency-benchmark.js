@@ -188,7 +188,7 @@ var inputLatency = function() {
   var test = this;
   testMode = TEST_MODES.JAVASCRIPT_LATENCY;
   requestServerTest(test, function() {}, function(response) {
-    pass(test, (response.keyDownLatencyMs/(1000/60)).toFixed(1) + ' frames');
+    pass(test, (response.keyDownLatencyMs/(1000/60)).toFixed(1) + ' frames latency');
   });
 };
 
@@ -196,7 +196,7 @@ var scrollLatency = function() {
   var test = this;
   testMode = TEST_MODES.SCROLL_LATENCY;
   requestServerTest(test, function() {}, function(response) {
-    pass(test, (response.scrollLatencyMs/(1000/60)).toFixed(1) + ' frames');
+    pass(test, (response.scrollLatencyMs/(1000/60)).toFixed(1) + ' frames latency');
   });
 };
 
@@ -222,7 +222,21 @@ var testJank = function() {
     };
     raf(callback);
   }, function(response) {
-    pass(test, (response.maxJSPauseTimeMs/(1000/60)).toFixed(1) + ' frames JS pause time, ' + (response.maxCssPauseTimeMs/(1000/60)).toFixed(1) + ' frames CSS pause time ' + (response.maxScrollPauseTimeMs/(1000/60)).toFixed(1) + ' frames scroll pause time');
+    var reports = [];
+    for (var i = 0; i < test.report.length; i++) {
+      switch (test.report[i]) {
+      case 'css':
+        reports.push('CSS: ' + (response.maxCssPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
+        break;
+      case 'js':
+        reports.push('JavaScript: ' + (response.maxJSPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
+        break;
+      case 'scroll':
+        reports.push('Scrolling: ' + (response.maxScrollPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
+        break;
+      }
+    }
+    pass(test, reports.join(', '));
   });
 };
 
@@ -276,10 +290,10 @@ var loadGiantImage = function() {
     for (var i = 0; i < giantImages.length; i++) {
       if (giantImages[i].failed) {
         error(test, 'Image failed to load.');
-        test.finished = true;
         return;
       }
     }
+    document.body.removeChild(giantImageContainer);
   }
 };
 
@@ -324,30 +338,15 @@ var gcLoad = function() {
   }
 };
 
-var cpuLoad = function(msWork, msTotal, workerLoad) {
-  return function() {
-    var test = this;
-    test.units = '%';
-    if (workerLoad && worker) {
-      if (!test.initialized) {
-        spinDone = false;
-        worker.postMessage({test: 'spin', lengthMs: 10000});
-      }
-      test.finishedMeasuring = spinDone;
-    } else {
-      test.finishedMeasuring = test.iteration > 600;
-    }
-    var start = getMs();
-    var iterations = 0;
-    while (getMs() - msWork < start) {
-      iterations++
-      for (var i = 0; i < 10000; i++);
-    }
-
-    test.value = iterations;
-    while (getMs() - msTotal < start);
+var cpuLoad = function() {
+  var test = this;
+  if (test.iteration > 2) {
+    test.finishedMeasuring = true;
+    return;
   }
-}
+  var start = getMs();
+  while (getMs() - start < 1000);
+};
 
 var element = document.documentElement;
 var style = element.style;
@@ -355,10 +354,21 @@ var table = document.createElement('table');
 table.id = 'tests';
 document.body.appendChild(table);
 var tests = [
-  { name: 'Keydown latency', test: inputLatency },
-  { name: 'Scroll latency', test: scrollLatency },
-  { name: 'Control', test: testJank, blocker: control },
-  { name: 'Image loading', test: testJank, blocker: loadGiantImage },
+  // { name: 'Keydown latency',
+  //   info: 'Tests the delay from keypress to on-screen response.',
+  //   test: inputLatency },
+  // { name: 'Scroll latency',
+  //   info: 'Tests the delay from mousewheel movement to on-screen response.',
+  //   test: scrollLatency },
+  // { name: 'Baseline jank',
+  //   info: 'Tests responsiveness while the browser is idle.',
+  //   test: testJank, blocker: control, report: ['css', 'js', 'scroll'] },
+  { name: 'Image loading jank',
+    info: 'Tests responsiveness during image loading.',
+    test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
+  { name: 'JavaScript jank',
+    info: 'Tests responsiveness during JavaScript execution.',
+    test: testJank, blocker: cpuLoad, report: ['css', 'scroll'] },
 
   // These tests work, but are disabled for now to focus on the latency test.
   // { name: 'requestAnimationFrame', test: checkName, toCheck: 'requestAnimationFrame' },
@@ -415,6 +425,12 @@ for (var i = 0; i < tests.length; i++) {
   var infoCell = document.createElement('td');
   nameCell.className = 'testName';
   nameCell.textContent = test.name;
+  var description = document.createElement('div');
+  description.className = 'testDescription';
+  nameCell.appendChild(description);
+  if (test.info) {
+    description.textContent = test.info;
+  }
   resultCell.className = 'testResult';
   test.resultCell = document.createElement('div');
   resultCell.appendChild(test.resultCell);

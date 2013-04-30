@@ -37,7 +37,7 @@ a:visited {
   height: 40px;
 }
 .testResult div {
-  font-size: 120%;
+  font-size: 140%;
   text-align: center;
 }
 .passed {
@@ -49,6 +49,10 @@ a:visited {
 .testError {
   color: red;
 }
+.testDescription {
+  color: #AFAFAF;
+  font-size: 10px;
+}
 #onScreenCanvas {
   position:fixed;
   top: 0px;
@@ -58,7 +62,7 @@ a:visited {
   color: green;
 }
 #tests {
-  font-size: 24px;
+  font-size: 20px;
   position: fixed;
   table-layout: fixed;
   width: 100%;
