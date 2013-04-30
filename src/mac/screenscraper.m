@@ -36,7 +36,8 @@ screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width,
   capture_rect = CGRectIntersection(capture_rect, screen_rect);
   // Convert to logical pixels from backing store pixels.
   CGRect converted_capture_rect = [screen convertRectFromBacking:capture_rect];
-  // Make sure we are at an integer logical pixel to satisfy CGWindowListCreatImage.
+  // Make sure we are at an integer logical pixel to satisfy
+  // CGWindowListCreateImage.
   if (!near_integer(converted_capture_rect.origin.x) ||
       !near_integer(converted_capture_rect.origin.y)) {
     debug_log(
@@ -67,7 +68,8 @@ screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width,
   CGBitmapInfo bitmap_info = CGImageGetBitmapInfo(window_image);
   // I think something will probably break if we're not little endian.
   assert(kCGBitmapByteOrder32Little == kCGBitmapByteOrder32Host);
-  // We expect little-endian, alpha "first", which in reality comes out to BGRA byte order.
+  // We expect little-endian, alpha "first", which in reality comes out to BGRA
+  // byte order.
   bool correct_byte_order =
       (bitmap_info & kCGBitmapByteOrderMask) == kCGBitmapByteOrder32Little;
   bool correct_alpha_location = bitmap_info & kCGBitmapAlphaInfoMask &
@@ -101,14 +103,12 @@ void free_screenshot(screenshot *shot) {
 }
 
 bool send_keystroke_z() {
-  static CGEventRef down = NULL;
-  static CGEventRef up = NULL;
-  if (!down || !up) {
-    down = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)6, true);
-    up = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)6, false);
-  }
+  CGEventRef down = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)6, true);
+  CGEventRef up = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)6, false);
   CGEventPost(kCGHIDEventTap, down);
   CGEventPost(kCGHIDEventTap, up);
+  CFRelease(down);
+  CFRelease(up);
   return true;
 }
 
@@ -117,11 +117,10 @@ bool send_scroll_down(x, y) {
       [[[NSScreen screens] objectAtIndex:0] backingScaleFactor];
   CGWarpMouseCursorPosition(
       CGPointMake(x / devicePixelRatio, y / devicePixelRatio));
-  static CGEventRef down = NULL;
-  if (!down) {
-    down = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitPixel, 1, -20);
-  }
-  CGEventPost(kCGHIDEventTap, down);
+  CGEventRef scrollEvent = CGEventCreateScrollWheelEvent(NULL,
+      kCGScrollEventUnitPixel, 1, -20);
+  CGEventPost(kCGHIDEventTap, scrollEvent);
+  CFRelease(scrollEvent);
   return true;
 }
 
