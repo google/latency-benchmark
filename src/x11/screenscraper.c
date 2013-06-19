@@ -15,6 +15,7 @@
  */
 
 #include "../screenscraper.h"
+#include <pthread.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>  // XGetPixel, XDestroyImage
 #include <X11/keysym.h> // XK_Z
@@ -45,6 +46,10 @@ screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width,
     uint32_t height) {
   if (!display) {
     display = XOpenDisplay(NULL);
+    XInitThreads();
+    if (!display) {
+      return false;
+    }
   }
   // Make sure width and height can be safely converted to signed integers.
   width = min(width, INT_MAX);
@@ -95,6 +100,10 @@ void free_screenshot(screenshot *shot) {
 bool send_keystroke_z() {
   if (!display) {
     display = XOpenDisplay(NULL);
+    XInitThreads();
+    if (!display) {
+      return false;
+    }
   }
   // Send a keydown event for the 'Z' key, followed immediately by keyup.
   XKeyEvent event;
@@ -121,6 +130,10 @@ bool send_keystroke_z() {
 bool send_scroll_down(int x, int y) {
   if (!display) {
     display = XOpenDisplay(NULL);
+    XInitThreads();
+    if (!display) {
+      return false;
+    }
   }
   XWarpPointer(display, None, RootWindow(display, 0), 0, 0, 0, 0, x, y);
   static bool x_test_extension_queried = false;
@@ -203,12 +216,76 @@ bool open_browser(const char *url) {
   return true;
 }
 
-bool open_control_window() {
-  // TODO
-  return false;
+
+static pthread_t thread;
+static bool thread_running = false;
+static uint8_t *test_pattern = NULL;
+
+
+void *control_window_thread(void *ignored) {
+  Display *thread_display = XOpenDisplay(NULL);
+  assert(thread_display);
+  if (!thread_display) {
+    return NULL;
+  }
+  assert(test_pattern);
+  Window window = XCreateSimpleWindow(thread_display, RootWindow(thread_display, 0), 100, 100, 100, 100, 0, 0, 0);
+  XSelectInput(thread_display, window, KeyPressMask | ButtonPressMask | ExposureMask);
+  XmbSetWMProperties(thread_display, window, "Test window", NULL, NULL, 0, NULL, NULL, NULL);
+  XMapRaised(thread_display, window);
+  while (thread_running) {
+    while (XPending(thread_display)) {
+      XEvent event;
+      XNextEvent(thread_display, &event);
+      if (event.type == ButtonPress) {
+        // This is probably a mousewheel event.
+        test_pattern[4 * 5 + 0]++;
+        test_pattern[4 * 5 + 1]++;
+        test_pattern[4 * 5 + 2]++;
+      } else if (event.type == KeyPress) {
+        test_pattern[4 * 4 + 1]++;
+      }
+    }
+    test_pattern[4 * 6 + 0]++;
+    test_pattern[4 * 6 + 1]++;
+    test_pattern[4 * 6 + 2]++;
+    test_pattern[4 * 4 + 0]++;
+    for (int i = 0; i < pattern_bytes; i += 4) {
+      XSetForeground(thread_display, DefaultGC(thread_display, 0), test_pattern[i + 2] << 16 | test_pattern[i + 1] << 8 | test_pattern[i]);
+      XDrawPoint(thread_display, window, DefaultGC(thread_display, 0), i / 4, 0);
+    }
+    usleep(1000 * 5);
+  }
+  XCloseDisplay(thread_display);
+  return NULL;
 }
 
+
+bool open_control_window(uint8_t *test_pattern_for_window) {
+  if (thread_running) {
+    return false;
+  }
+  if (!display) {
+    display = XOpenDisplay(NULL);
+    XInitThreads();
+    if (!display) {
+      return false;
+    }
+  }
+  test_pattern = test_pattern_for_window;
+  thread_running = true;
+  pthread_create(&thread, NULL, &control_window_thread, NULL);
+  // Wait for window to show up and be painted.
+  usleep(1000 * 1000);
+  return true;
+}
+
+
 bool close_control_window() {
-  // TODO
-  return false;
+  if (!thread_running) {
+    return false;
+  }
+  thread_running = false;
+  pthread_join(thread, NULL);
+  return true;
 }
