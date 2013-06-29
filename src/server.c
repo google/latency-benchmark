@@ -102,7 +102,6 @@ static bool is_latency_test_request(const struct mg_request_info *request_info,
   // Here is an example of a valid request:
   // http://localhost:5578/test?magicPattern=8a36052d02c596dfa4c80711
   if (strcmp(request_info->uri, "/test") == 0) {
-    const int hex_pattern_length = pattern_magic_pixels * 3 * 2;
     char hex_pattern[hex_pattern_length + 1];
     if (hex_pattern_length == mg_get_var(
             request_info->query_string,
@@ -110,23 +109,7 @@ static bool is_latency_test_request(const struct mg_request_info *request_info,
             "magicPattern",
             hex_pattern,
             hex_pattern_length + 1)) {
-      bool failed = false;
-      for (int i = 0; i < pattern_magic_bytes; i++) {
-        // Read the pattern from hex. Every fourth byte is the alpha channel
-        // with an expected value of 255.
-        if (i % 4 == 3) {
-          magic_pattern[i] = 255;
-        } else {
-          int hex_index = (i - i / 4) * 2;
-          assert(hex_index < hex_pattern_length);
-          int current_byte;
-          int num_parsed = sscanf(hex_pattern + hex_index, "%2x",
-              &current_byte);
-          failed |= 1 != num_parsed;
-          magic_pattern[i] = current_byte;
-        }
-      }
-      return !failed;
+      return parse_hex_magic_pattern(hex_pattern, magic_pattern);
     }
   }
   return false;
@@ -186,7 +169,6 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
     for (int i = 0; i < pattern_magic_bytes; i++) {
       test_pattern[i] = rand();
     }
-    test_pattern[4 * 4 + 2] = TEST_MODE_JAVASCRIPT_LATENCY;
     open_control_window(test_pattern);
     report_latency(connection, test_pattern);
     close_control_window();

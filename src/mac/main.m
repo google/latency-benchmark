@@ -15,7 +15,38 @@
  */
 
 #import <Cocoa/Cocoa.h>
-#include <dirent.h>
+#import <dirent.h>
+#import <OpenGL/OpenGL.h>
+#include "../latency-benchmark.h"
+#include "screenscraper.h"
+
+NSOpenGLContext *context;
+uint8_t pattern[pattern_bytes];
+int scrolls = 0;
+int key_downs = 0;
+
+CVReturn vsync_callback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) {
+  if (getppid() == 1) {
+    // The parent process died, so we should exit immediately.
+    exit(0);
+  }
+  CGLLockContext((CGLContextObj)[context CGLContextObj]);
+  [context makeCurrentContext];
+
+  draw_pattern_with_opengl(pattern, scrolls, key_downs);
+
+  [context flushBuffer];
+  CGLUnlockContext((CGLContextObj)[context CGLContextObj]);
+  return kCVReturnSuccess;
+}
+
+// NSWindow's default implementation of canBecomeKeyWindow returns NO if the window is borderless, which prevents the window from gaining keyboard focus. KeyWindow overrides canBecomeKeyWindow to always be YES.
+@interface KeyWindow : NSWindow
+@end
+@implementation KeyWindow
+- (BOOL)canBecomeKeyWindow { return YES; }
+@end
+
 
 void run_server(void);
 
@@ -26,6 +57,48 @@ int main(int argc, char *argv[])
   // unless you configure them not to.
   // http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals
   signal(SIGPIPE, SIG_IGN);
-  run_server();
+  if (argc <= 1) {
+    run_server();
+    return 0;
+  }
+  memset(pattern, 0, sizeof(pattern));
+  debug_log("argument 1: %s", argv[1]);
+  if (!parse_hex_magic_pattern(argv[1], pattern)) {
+    debug_log("Failed to parse pattern.");
+    return 1;
+  }
+  ProcessSerialNumber psn;
+  OSErr err = GetCurrentProcess(&psn);
+  assert(!err);
+  // By default, naked binary applications are not allowed to create windows
+  // and receive input focus. This call allows us to create windows that receive
+  // input focus, but does not cause the creation of a Dock icon or menu bar.
+  TransformProcessType(&psn, kProcessTransformToUIElementApplication);
+  @autoreleasepool {
+    [NSApplication sharedApplication];
+    NSWindow *window = [[KeyWindow alloc] initWithContentRect:NSMakeRect(200, 200, 500, 500) styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
+    NSOpenGLPixelFormatAttribute attrs[] = { NSOpenGLPFADoubleBuffer, 0 };
+    context = [[NSOpenGLContext alloc] initWithFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] shareContext:nil];
+    [[window contentView] setWantsBestResolutionOpenGLSurface:YES];
+    [context setView:[window contentView]];
+    [context makeCurrentContext];
+    draw_pattern_with_opengl(pattern, 0, 0);
+    [context flushBuffer];
+    [window makeKeyAndOrderFront:window];
+    CVDisplayLinkRef displayLink;
+    CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
+    CVDisplayLinkSetOutputCallback(displayLink, &vsync_callback, nil);
+    CVDisplayLinkStart(displayLink);
+    [NSEvent addLocalMonitorForEventsMatchingMask:NSScrollWheelMask handler:^NSEvent *(NSEvent *event) {
+      scrolls++;
+      return event;
+    }];
+    [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:^NSEvent *(NSEvent *event) {
+      key_downs++;
+      return event;
+    }];
+    [NSApp activateIgnoringOtherApps:YES];
+    [NSApp run];
+  }
   return 0;
 }

@@ -29,6 +29,76 @@
 #include "screenscraper.h"
 #include "latency-benchmark.h"
 
+
+// Updates the given pattern with the given event data, then draws the pattern to
+// the current OpenGL context.
+void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events, int keydown_events) {
+  pattern[4 * 4 + 2] = TEST_MODE_JAVASCRIPT_LATENCY;
+  // Update the pattern with the number of scroll events mod 255.
+  pattern[4 * 5] = pattern[4 * 5 + 1] = pattern[4 * 5 + 2] = scroll_events;
+  // Update the pattern with the number of keydown events mod 255.
+  pattern[4 * 4 + 1] = keydown_events;
+  // Increment the "JavaScript frames" counter.
+  pattern[4 * 4 + 0]++;
+  // Increment the "CSS animation frames" counter.
+  pattern[4 * 6 + 0]++;
+  pattern[4 * 6 + 1]++;
+  pattern[4 * 6 + 2]++;
+  glDisable(GL_SCISSOR_TEST);
+  glClearColor(1, 1, 1, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glEnable(GL_SCISSOR_TEST);
+  for (int i = 0; i < pattern_bytes; i += 4) {
+    glClearColor(pattern[i + 2] / 255.0, pattern[i + 1] / 255.0, pattern[i] / 255.0, 1);
+    // TODO: put this at the top of the window instead of the bottom, and guarantee even coordinates on a retina display.
+    glScissor(i / 4 + 200, 101, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
+  }
+}
+
+
+// Parses the magic pattern from a hexadecimal encoded string and fills parsed_pattern with the result. parsed_pattern must be a buffer at least pattern_magic_bytes long.
+bool parse_hex_magic_pattern(const char *encoded_pattern, uint8_t parsed_pattern[]) {
+  assert(encoded_pattern);
+  assert(parsed_pattern);
+  if (strlen(encoded_pattern) != hex_pattern_length) {
+    return false;
+  }
+  bool failed = false;
+  for (int i = 0; i < pattern_magic_bytes; i++) {
+    // Read the pattern from hex. Every fourth byte is the alpha channel
+    // with an expected value of 255.
+    if (i % 4 == 3) {
+      parsed_pattern[i] = 255;
+    } else {
+      int hex_index = (i - i / 4) * 2;
+      assert(hex_index < hex_pattern_length);
+      int current_byte;
+      int num_parsed = sscanf(encoded_pattern + hex_index, "%2x",
+                              &current_byte);
+      failed |= 1 != num_parsed;
+      parsed_pattern[i] = current_byte;
+    }
+  }
+  return !failed;
+}
+
+
+// Encodes the given magic pattern into hexadecimal. encoded_pattern must be a buffer at least hex_pattern_length + 1 bytes long.
+void hex_encode_magic_pattern(const uint8_t magic_pattern[], char encoded_pattern[]) {
+  assert(magic_pattern);
+  assert(encoded_pattern);
+  int written_bytes = 0;
+  for (int i = 0; i < pattern_magic_bytes; i++) {
+    // Skip alpha bytes.
+    if (i % 4 == 3) continue;
+    assert(written_bytes < hex_pattern_length - 1);
+    snprintf(&encoded_pattern[written_bytes], 3, "%02hhX", magic_pattern[i]);
+    written_bytes += 2;
+  }
+}
+
+
 // This function works something like memmem, except that it expects needle to
 // be 4-byte aligned in haystack (since each pixel is 4 bytes) and it ignores
 // every fourth byte (starting with haystack[3]) because those bytes represent

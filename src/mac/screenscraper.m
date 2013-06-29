@@ -15,7 +15,10 @@
  */
 
 #import "../screenscraper.h"
+#import "../latency-benchmark.h"
 #import <Cocoa/Cocoa.h>
+#import <mach-o/dyld.h>
+
 
 const float float_epsilon = 0.0001;
 bool near_integer(float f) {
@@ -149,12 +152,41 @@ bool open_browser(const char *url) {
         [NSURL URLWithString:[NSString stringWithUTF8String:url]]];
 }
 
-bool open_control_window() {
-  // TODO
+pid_t window_process_pid = 0;
+
+bool open_control_window(uint8_t *test_pattern_for_window) {
+  if (window_process_pid != 0) {
+    debug_log("Control window already open");
+    return false;
+  }
+  char path[2048];
+  uint32_t length = sizeof(path);
+  if (_NSGetExecutablePath(path, &length)) {
+    debug_log("Couldn't find executable path");
+    return false;
+  }
+  char hex_pattern[hex_pattern_length + 1];
+  hex_encode_magic_pattern(test_pattern_for_window, hex_pattern);
+  window_process_pid = fork();
+  if (!window_process_pid) {
+    // Child process. It would be nice to just call into Cocoa from here, but Cocoa can't handle running after a call to fork(), so instead we must restart the process.
+    execl(path, path, hex_pattern, NULL);
+  }
+  // Parent process. Wait for the child to launch and show its window before returning.
+  usleep(2000000 /* 2 seconds */);
   return false;
 }
 
 bool close_control_window() {
-  // TODO
-  return false;
+  if (window_process_pid == 0) {
+    debug_log("Control window not open");
+    return false;
+  }
+  int r = kill(window_process_pid, SIGKILL);
+  window_process_pid = 0;
+  if (r) {
+    debug_log("Failed to close control window");
+    return false;
+  }
+  return true;
 }

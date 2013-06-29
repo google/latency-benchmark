@@ -89,12 +89,16 @@ bool open_browser(const char *url);
 bool open_control_window(uint8_t *test_pattern);
 bool close_control_window();
 
-// The magic bytes used to recognize the pattern in the screenshot.
-static const int pattern_magic_pixels = 4;
-static const int pattern_magic_bytes = pattern_magic_pixels * 4;
+// The number of pixels in the pattern that encodes the data from the test window.
 static const int pattern_pixels = 8;
 static const int pattern_bytes = pattern_pixels * 4;
+// The "magic" part of the pattern uniquely identifies the test window on the screen.
+static const int pattern_magic_pixels = 4;
+static const int pattern_magic_bytes = pattern_magic_pixels * 4;
+// The data part of the pattern encodes the test progress.
 static const int data_pixels = pattern_pixels - pattern_magic_pixels;
 static const int data_bytes = data_pixels * 3;
+// The length of the magic part of the pattern, in characters, when it is encoded as hexadecimal digits (omitting the alpha bytes).
+static const int hex_pattern_length = pattern_magic_pixels * 3 * 2;
 
 #endif  // WLB_SCREENSCRAPER_H_
