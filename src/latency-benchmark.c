@@ -29,10 +29,22 @@
 #include "screenscraper.h"
 #include "latency-benchmark.h"
 
+int64_t last_draw_time = 0;
+int64_t biggest_draw_time_gap = 0;
 
-// Updates the given pattern with the given event data, then draws the pattern to
-// the current OpenGL context.
-void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events, int keydown_events) {
+// Updates the given pattern with the given event data, then draws the pattern
+// to the current OpenGL context.
+void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events,
+                              int keydown_events) {
+  int64_t time = get_nanoseconds();
+  if (last_draw_time > 0) {
+    if (time - last_draw_time > biggest_draw_time_gap) {
+      biggest_draw_time_gap = time - last_draw_time;
+      debug_log("New biggest draw time gap: %f ms.",
+          biggest_draw_time_gap / (double)nanoseconds_per_millisecond);
+    }
+  }
+  last_draw_time = time;
   pattern[4 * 4 + 2] = TEST_MODE_JAVASCRIPT_LATENCY;
   // Update the pattern with the number of scroll events mod 255.
   pattern[4 * 5] = pattern[4 * 5 + 1] = pattern[4 * 5 + 2] = scroll_events;
@@ -44,21 +56,32 @@ void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events, int keydown_
   pattern[4 * 6 + 0]++;
   pattern[4 * 6 + 1]++;
   pattern[4 * 6 + 2]++;
+  GLint viewport[4];
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  GLint height = viewport[3];
   glDisable(GL_SCISSOR_TEST);
-  glClearColor(1, 1, 1, 1);
+  // Alternate background each frame to make tearing easy to spot.
+  float background = 1;
+  if (pattern[4 * 4 + 0] % 2 == 1)
+    background = 0.8;
+  glClearColor(background, background, background, 1);
   glClear(GL_COLOR_BUFFER_BIT);
   glEnable(GL_SCISSOR_TEST);
   for (int i = 0; i < pattern_bytes; i += 4) {
-    glClearColor(pattern[i + 2] / 255.0, pattern[i + 1] / 255.0, pattern[i] / 255.0, 1);
-    // TODO: put this at the top of the window instead of the bottom, and guarantee even coordinates on a retina display.
-    glScissor(i / 4 + 200, 101, 1, 1);
+    glClearColor(pattern[i + 2] / 255.0,
+                 pattern[i + 1] / 255.0,
+                 pattern[i] / 255.0, 1);
+    glScissor(i / 4, height - 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
   }
 }
 
 
-// Parses the magic pattern from a hexadecimal encoded string and fills parsed_pattern with the result. parsed_pattern must be a buffer at least pattern_magic_bytes long.
-bool parse_hex_magic_pattern(const char *encoded_pattern, uint8_t parsed_pattern[]) {
+// Parses the magic pattern from a hexadecimal encoded string and fills
+// parsed_pattern with the result. parsed_pattern must be a buffer at least
+// pattern_magic_bytes long.
+bool parse_hex_magic_pattern(const char *encoded_pattern,
+                             uint8_t parsed_pattern[]) {
   assert(encoded_pattern);
   assert(parsed_pattern);
   if (strlen(encoded_pattern) != hex_pattern_length) {
@@ -84,8 +107,10 @@ bool parse_hex_magic_pattern(const char *encoded_pattern, uint8_t parsed_pattern
 }
 
 
-// Encodes the given magic pattern into hexadecimal. encoded_pattern must be a buffer at least hex_pattern_length + 1 bytes long.
-void hex_encode_magic_pattern(const uint8_t magic_pattern[], char encoded_pattern[]) {
+// Encodes the given magic pattern into hexadecimal. encoded_pattern must be a
+// buffer at least hex_pattern_length + 1 bytes long.
+void hex_encode_magic_pattern(const uint8_t magic_pattern[],
+                              char encoded_pattern[]) {
   assert(magic_pattern);
   assert(encoded_pattern);
   int written_bytes = 0;
@@ -324,6 +349,22 @@ bool measure_latency(
   if (!first_screenshot_successful) {
     *error = "Failed to read data from test pattern.";
     return false;
+  }
+  if (measurement.test_mode == TEST_MODE_NATIVE_REFERENCE) {
+    uint8_t *test_pattern = (uint8_t *)malloc(pattern_bytes);
+    memset(test_pattern, 0, pattern_bytes);
+    for (int i = 0; i < pattern_magic_bytes; i++) {
+      test_pattern[i] = rand();
+    }
+    if (!open_native_reference_window(test_pattern)) {
+      *error = "Failed to open native reference window.";
+      return false;
+    }
+    bool return_value = measure_latency(test_pattern, out_key_down_latency_ms, out_scroll_latency_ms, out_max_js_pause_time_ms, out_max_css_pause_time_ms, out_max_scroll_pause_time_ms, error);
+    if (!close_native_reference_window()) {
+      debug_log("Failed to close native reference window.");
+    };
+    return return_value;
   }
   int64_t start_time = measurement.screenshot_time;
   previous_measurement = measurement;

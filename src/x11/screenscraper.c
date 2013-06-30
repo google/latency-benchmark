@@ -222,7 +222,7 @@ static bool thread_running = false;
 static uint8_t *test_pattern = NULL;
 
 
-void *control_window_thread(void *ignored) {
+void *native_reference_window_thread(void *ignored) {
   Display *thread_display = XOpenDisplay(NULL);
   assert(thread_display);
   if (!thread_display) {
@@ -261,7 +261,7 @@ void *control_window_thread(void *ignored) {
 }
 
 
-bool open_control_window(uint8_t *test_pattern_for_window) {
+bool open_native_reference_window(uint8_t *test_pattern_for_window) {
   if (thread_running) {
     return false;
   }
@@ -274,14 +274,14 @@ bool open_control_window(uint8_t *test_pattern_for_window) {
   }
   test_pattern = test_pattern_for_window;
   thread_running = true;
-  pthread_create(&thread, NULL, &control_window_thread, NULL);
+  pthread_create(&thread, NULL, &native_reference_window_thread, NULL);
   // Wait for window to show up and be painted.
   usleep(1000 * 1000);
   return true;
 }
 
 
-bool close_control_window() {
+bool close_native_reference_window() {
   if (!thread_running) {
     return false;
   }

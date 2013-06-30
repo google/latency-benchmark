@@ -169,9 +169,9 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
     for (int i = 0; i < pattern_magic_bytes; i++) {
       test_pattern[i] = rand();
     }
-    open_control_window(test_pattern);
+    open_native_reference_window(test_pattern);
     report_latency(connection, test_pattern);
-    close_control_window();
+    close_native_reference_window();
     return 1;
   } else {
     // This request doesn't look special.

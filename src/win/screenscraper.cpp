@@ -409,7 +409,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-static HWND control_window = NULL;
+static HWND native_reference_window = NULL;
 static const char *window_class_name = "window_class_name";
 DWORD WINAPI message_loop(LPVOID ignored) {
   WNDCLASS window_class;
@@ -423,24 +423,24 @@ DWORD WINAPI message_loop(LPVOID ignored) {
     ATOM a = RegisterClass(&window_class);
     assert(a);
   }
-  assert(!control_window);
-  control_window = CreateWindow(window_class_name,
+  assert(!native_reference_window);
+  native_reference_window = CreateWindow(window_class_name,
                                 "Web Latency Benchmark test window",
                                 WS_OVERLAPPEDWINDOW,
                                 100, 100, 500, 500,
                                 NULL, NULL, window_class.hInstance, NULL);
-  assert(control_window);
-  ShowWindow(control_window, SW_SHOWNORMAL);
-  SetWindowPos(control_window, HWND_TOPMOST, 0, 0, 0, 0,
+  assert(native_reference_window);
+  ShowWindow(native_reference_window, SW_SHOWNORMAL);
+  SetWindowPos(native_reference_window, HWND_TOPMOST, 0, 0, 0, 0,
       SWP_NOMOVE | SWP_NOSIZE);
-  SetForegroundWindow(control_window);
+  SetForegroundWindow(native_reference_window);
   last_paint_time = get_nanoseconds();
-  UpdateWindow(control_window);
+  UpdateWindow(native_reference_window);
 
   MSG msg;
   while(1) {
     while(!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-      InvalidateRect(control_window, NULL, false);
+      InvalidateRect(native_reference_window, NULL, false);
       usleep(1000);
     }
     if (msg.message == WM_QUIT)
@@ -448,21 +448,21 @@ DWORD WINAPI message_loop(LPVOID ignored) {
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
-  control_window = NULL;
+  native_reference_window = NULL;
   return 0;
 }
 
 
-bool open_control_window(uint8_t *test_pattern_for_window) {
+bool open_native_reference_window(uint8_t *test_pattern_for_window) {
   test_pattern = test_pattern_for_window;
-  if (!control_window)
+  if (!native_reference_window)
     HANDLE thread = CreateThread(NULL, 0, message_loop, NULL, 0, NULL);
   // Wait for window show animation to finish.
   usleep(1000 * 1000);
   return true;
 }
 
-bool close_control_window() {
-  assert(control_window);
-  return PostMessage(control_window, WM_CLOSE, 0, 0);
+bool close_native_reference_window() {
+  assert(native_reference_window);
+  return PostMessage(native_reference_window, WM_CLOSE, 0, 0);
 }

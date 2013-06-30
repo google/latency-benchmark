@@ -154,9 +154,9 @@ bool open_browser(const char *url) {
 
 pid_t window_process_pid = 0;
 
-bool open_control_window(uint8_t *test_pattern_for_window) {
+bool open_native_reference_window(uint8_t *test_pattern_for_window) {
   if (window_process_pid != 0) {
-    debug_log("Control window already open");
+    debug_log("Native reference window already open");
     return false;
   }
   char path[2048];
@@ -169,23 +169,26 @@ bool open_control_window(uint8_t *test_pattern_for_window) {
   hex_encode_magic_pattern(test_pattern_for_window, hex_pattern);
   window_process_pid = fork();
   if (!window_process_pid) {
-    // Child process. It would be nice to just call into Cocoa from here, but Cocoa can't handle running after a call to fork(), so instead we must restart the process.
+    // Child process. It would be nice to just call into Cocoa from here, but
+    // Cocoa can't handle running after a call to fork(), so instead we must
+    // restart the process.
     execl(path, path, hex_pattern, NULL);
   }
-  // Parent process. Wait for the child to launch and show its window before returning.
+  // Parent process. Wait for the child to launch and show its window before
+  // returning.
   usleep(2000000 /* 2 seconds */);
-  return false;
+  return true;
 }
 
-bool close_control_window() {
+bool close_native_reference_window() {
   if (window_process_pid == 0) {
-    debug_log("Control window not open");
+    debug_log("Native reference window not open");
     return false;
   }
   int r = kill(window_process_pid, SIGKILL);
   window_process_pid = 0;
   if (r) {
-    debug_log("Failed to close control window");
+    debug_log("Failed to close native reference window");
     return false;
   }
   return true;

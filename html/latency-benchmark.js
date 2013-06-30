@@ -204,6 +204,9 @@ var testJank = function() {
   var test = this;
   var values = [];
   testMode = TEST_MODES.PAUSE_TIME;
+  if (test.testModeOverride) {
+    testMode = test.testModeOverride;
+  }
   requestServerTest(test, function() {
     test.iteration = 0;
     test.finishedMeasuring = false;
@@ -237,6 +240,15 @@ var testJank = function() {
       }
     }
     pass(test, reports.join(', '));
+  });
+};
+
+
+var testNative = function() {
+  var test = this;
+  testMode = TEST_MODES.NATIVE_REFERENCE;
+  requestServerTest(test, function() {}, function(response) {
+    pass(test, ((response.keyDownLatencyMs/(1000/60)).toFixed(1)) + ' frames latency, ' + (response.maxCssPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
   });
 };
 
@@ -367,7 +379,9 @@ var tests = [
   { name: 'Image loading jank',
     info: 'Tests responsiveness during image loading.',
     test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
-
+  { name: 'Native reference',
+    info: 'Tests the input latency of a native app\'s window for comparison to the browser.',
+    test: testNative },
   // These tests work, but are disabled for now to focus on the latency test.
   // { name: 'requestAnimationFrame', test: checkName, toCheck: 'requestAnimationFrame' },
   // { name: 'Canvas 2D', test: checkName, toCheck: 'HTMLCanvasElement' },

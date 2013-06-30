@@ -46,7 +46,7 @@ The Web Latency Benchmark is licensed under the Apache License version 2.0. This
 
 * Improve the styling and presentation of the test pages and add more explanation about what each test is doing.
 * Embed the test HTML/JS into the executable for release builds for easier distribution.
-* Windows has a partial implementation of a "reference window" which implements the tests in pure C++ to establish a lower bound on what kind of latency is possible to achieve. (See the open_control_window function.) This should be integrated into the main test page and implemented on the other platforms too.
+* Windows has a partial implementation of a "reference window" which implements the tests in pure C++ to establish a lower bound on what kind of latency is possible to achieve. (See the open_native_reference_window function.) This should be integrated into the main test page and implemented on the other platforms too.
 * Defend against non-test webpages making XMLHttpRequests to the server (a possible security issue, since the screenshotting code isn't security audited).
 * Clean up latency-benchmark.html and latency-benchmark.js. Separate the JavaScript into more files.
 * Find a way to share constants like the test timeout between JS and C.

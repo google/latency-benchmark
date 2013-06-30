@@ -27,7 +27,8 @@ typedef enum {
   TEST_MODE_JAVASCRIPT_LATENCY = 1,
   TEST_MODE_SCROLL_LATENCY = 2,
   TEST_MODE_PAUSE_TIME = 3,
-  TEST_MODE_PAUSE_TIME_TEST_FINISHED = 4
+  TEST_MODE_PAUSE_TIME_TEST_FINISHED = 4,
+  TEST_MODE_NATIVE_REFERENCE = 5,
 } test_mode_t;
 
 // Main test function. Locates the given magic pixel pattern on the screen, then
@@ -46,12 +47,18 @@ bool measure_latency(
 
 // Updates the given pattern with the given event data, then draws the pattern to
 // the current OpenGL context.
-void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events, int keydown_events);
+void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events,
+                              int keydown_events);
 
-// Parses the magic pattern from a hexadecimal encoded string and fills parsed_pattern with the result. parsed_pattern must be a buffer at least pattern_magic_bytes long.
-bool parse_hex_magic_pattern(const char *encoded_pattern, uint8_t parsed_pattern[]);
+// Parses the magic pattern from a hexadecimal encoded string and fills
+// parsed_pattern with the result. parsed_pattern must be a buffer at least
+// pattern_magic_bytes long.
+bool parse_hex_magic_pattern(const char *encoded_pattern,
+                             uint8_t parsed_pattern[]);
 
-// Encodes the given magic pattern into hexadecimal. encoded_pattern must be a buffer at least hex_pattern_length + 1 bytes long.
-void hex_encode_magic_pattern(const uint8_t magic_pattern[], char encoded_pattern[]);
+// Encodes the given magic pattern into hexadecimal. encoded_pattern must be a
+// buffer at least hex_pattern_length + 1 bytes long.
+void hex_encode_magic_pattern(const uint8_t magic_pattern[],
+                              char encoded_pattern[]);
 
 #endif  // WLB_LATENCY_BENCHMARK_H_

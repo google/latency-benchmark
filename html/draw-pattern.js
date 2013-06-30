@@ -136,7 +136,8 @@ var TEST_MODES = {
   JAVASCRIPT_LATENCY: 1,
   SCROLL_LATENCY: 2,
   PAUSE_TIME: 3,
-  PAUSE_TIME_TEST_FINISHED: 4
+  PAUSE_TIME_TEST_FINISHED: 4,
+  NATIVE_REFERENCE: 5
 }
 var callback = function() {
   raf(callback);
