@@ -33,6 +33,7 @@
 #define INFINITY (std::numeric_limits<double>::infinity())
 #include <intrin.h>
 #define __sync_fetch_and_add _InterlockedExchangeAdd
+#define snprintf _snprintf
 #endif
 
 typedef struct {

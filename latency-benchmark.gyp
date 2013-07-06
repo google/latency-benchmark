@@ -23,6 +23,7 @@
           'sources': [
             'src/win/main.cpp',
             'src/win/screenscraper.cpp',
+			'src/win/stdafx.h',
           ],
         }],
         ['OS=="mac"', {

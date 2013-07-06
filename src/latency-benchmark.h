@@ -18,8 +18,14 @@
 #define WLB_LATENCY_BENCHMARK_H_
 
 // TODO: Make this include portable. This is the include for Mac OS.
+#ifdef _MACOSX
 #include <OpenGL/gl.h>
-
+#endif
+#ifdef _WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h> // Required by gl.h on Windows :(
+#include <gl/GL.h>
+#endif
 
 // The test mode is communicated from the test page to the server as one of the
 // pixel values in the test pattern.

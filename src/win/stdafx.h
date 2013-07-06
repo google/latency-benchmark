@@ -59,5 +59,7 @@
 #include "../screenscraper.h"
 #pragma comment(lib, "shell32.lib")
 #include <shellapi.h>
+#include <gl/GL.h>
+#pragma comment(lib, "opengl32.lib")
 
 #endif  // WLB_WIN_STDAFX_H_

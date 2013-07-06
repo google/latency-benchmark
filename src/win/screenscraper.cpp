@@ -15,6 +15,7 @@
  */
 
 #include "stdafx.h"
+#include "../latency-benchmark.h"
 
 static INIT_ONCE start_time_init_once;
 static LARGE_INTEGER start_time;
@@ -362,107 +363,58 @@ bool open_browser(const char *url) {
   return 32 < (int)ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
-
-static int64_t last_paint_time = 0;
-static int64_t max_paint_pause = 0;
-static uint8_t *test_pattern = NULL;
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-  int64_t paint_time = get_nanoseconds();
-  switch(msg) {
-  case WM_DESTROY:
-    PostQuitMessage(0);
-    break;
-  case WM_MOUSEWHEEL:
-    test_pattern[4 * 5 + 0]++;
-    test_pattern[4 * 5 + 1]++;
-    test_pattern[4 * 5 + 2]++;
-    InvalidateRect(hwnd, NULL, false);
-    break;
-  case WM_KEYDOWN:
-    test_pattern[4 * 4 + 1]++;
-    InvalidateRect(hwnd, NULL, false);
-    break;
-  case WM_PAINT:
-    if (paint_time - last_paint_time > max_paint_pause) {
-      max_paint_pause = paint_time - last_paint_time;
-      always_log("new max_paint_pause: %f", max_paint_pause /
-          (double)nanoseconds_per_millisecond);
-    }
-    last_paint_time = paint_time;
-    test_pattern[4 * 6 + 0]++;
-    test_pattern[4 * 6 + 1]++;
-    test_pattern[4 * 6 + 2]++;
-    test_pattern[4 * 4 + 0]++;
-    PAINTSTRUCT ps;
-    BeginPaint(hwnd, &ps);
-    for (int i = 0; i < pattern_bytes; i += 4) {
-      SetPixel(ps.hdc, i / 4, 0, RGB(test_pattern[i + 2], test_pattern[i + 1],
-          test_pattern[i + 0]));
-    }
-    EndPaint(hwnd, &ps);
-    break;
-  default:
-    return DefWindowProc(hwnd, msg, wParam, lParam);
-  }
-  return 0;
-}
-
-
-static HWND native_reference_window = NULL;
-static const char *window_class_name = "window_class_name";
-DWORD WINAPI message_loop(LPVOID ignored) {
-  WNDCLASS window_class;
-  if (!GetClassInfo(GetModuleHandle(NULL), window_class_name, &window_class)) {
-    WNDCLASS window_class;
-    memset(&window_class, 0, sizeof(WNDCLASS));
-    window_class.hInstance = GetModuleHandle(NULL);
-    window_class.lpszClassName = window_class_name;
-    window_class.hbrBackground = (HBRUSH)(COLOR_WINDOWTEXT + 1);
-    window_class.lpfnWndProc = WndProc;
-    ATOM a = RegisterClass(&window_class);
-    assert(a);
-  }
-  assert(!native_reference_window);
-  native_reference_window = CreateWindow(window_class_name,
-                                "Web Latency Benchmark test window",
-                                WS_OVERLAPPEDWINDOW,
-                                100, 100, 500, 500,
-                                NULL, NULL, window_class.hInstance, NULL);
-  assert(native_reference_window);
-  ShowWindow(native_reference_window, SW_SHOWNORMAL);
-  SetWindowPos(native_reference_window, HWND_TOPMOST, 0, 0, 0, 0,
-      SWP_NOMOVE | SWP_NOSIZE);
-  SetForegroundWindow(native_reference_window);
-  last_paint_time = get_nanoseconds();
-  UpdateWindow(native_reference_window);
-
-  MSG msg;
-  while(1) {
-    while(!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-      InvalidateRect(native_reference_window, NULL, false);
-      usleep(1000);
-    }
-    if (msg.message == WM_QUIT)
-      break;
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
-  native_reference_window = NULL;
-  return 0;
-}
-
+HANDLE window_process_handle = NULL;
 
 bool open_native_reference_window(uint8_t *test_pattern_for_window) {
-  test_pattern = test_pattern_for_window;
-  if (!native_reference_window)
-    HANDLE thread = CreateThread(NULL, 0, message_loop, NULL, 0, NULL);
+  // The native reference window is opened in a new child process to make the
+  // test more fair. Unfortunately Visual Studio can't automatically attach to
+  // child processes. WinDbg can, so you can use WinDbg to debug the native
+  // reference window process. If that's too painful, you can configure
+  // Visual Studio to pass arguments on startup to debug the native reference
+  // window code in isolation. Here are some sample arguments that will work:
+  // 2923BEE16CD6529049F1BBE9 0
+
+  if (window_process_handle != NULL) {
+    debug_log("native window already open");
+    return false;
+  }
+  PROCESS_INFORMATION process_info;
+  char hex_pattern[hex_pattern_length + 1];
+  hex_encode_magic_pattern(test_pattern_for_window, hex_pattern);
+  STARTUPINFO startup_info;
+  memset(&startup_info, 0, sizeof(startup_info));
+  startup_info.cb = sizeof(startup_info);
+  char command_line[4096];
+  HANDLE current_process_handle = NULL;
+  if (!DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(),
+                       GetCurrentProcess(), &current_process_handle, 0, TRUE,
+                       DUPLICATE_SAME_ACCESS)) {
+    debug_log("DuplicateHandle failed");
+    return false;
+  }
+  sprintf_s(command_line, sizeof(command_line), "%s %s %X", GetCommandLine(),
+            hex_pattern, current_process_handle);
+  if (!CreateProcess(NULL, command_line, NULL, NULL, TRUE, 0, NULL, NULL,
+                     &startup_info, &process_info)) {
+    debug_log("Failed to start process");
+    return false;
+  }
+  window_process_handle = process_info.hProcess;
   // Wait for window show animation to finish.
-  usleep(1000 * 1000);
+  usleep(1000 * 1000 * 2);
   return true;
 }
 
 bool close_native_reference_window() {
-  assert(native_reference_window);
-  return PostMessage(native_reference_window, WM_CLOSE, 0, 0);
+  if (window_process_handle == NULL) {
+    debug_log("native window not open");
+    return false;
+  }
+  if (!TerminateProcess(window_process_handle, 0)) {
+    debug_log("Failed to terminate process");
+    window_process_handle = NULL;
+    return false;
+  }
+  window_process_handle = NULL;
+  return true;
 }
