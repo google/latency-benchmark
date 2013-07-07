@@ -147,11 +147,11 @@ int main(int argc, char *argv[])
     // counters (on the main UI thread).
     [NSEvent addLocalMonitorForEventsMatchingMask:NSScrollWheelMask handler:^NSEvent *(NSEvent *event) {
       scrolls++;
-      return event;
+      return nil;
     }];
     [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:^NSEvent *(NSEvent *event) {
       key_downs++;
-      return event;
+      return nil;
     }];
     // Steal input focus and become the topmost window.
     [NSApp activateIgnoringOtherApps:YES];
