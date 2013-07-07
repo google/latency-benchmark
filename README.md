@@ -34,9 +34,11 @@ You shouldn't make any changes to the XCode or Visual Studio project files direc
 
 ## How it works
 
-The Web latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.
+The Web Latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.
 
 There are two main components: the latency-benchmark server (written in C/C++) and the HTML/JavaScript benchmark page. The HTML page draws a special pattern of pixels to the screen using WebGL or Canvas 2D, then makes an XMLHTTPRequest to the server to start the latency measurement. The server locates the browser window by searching a screenshot for the special pattern. Once the browser window is located, the server starts sending input events. Each time the HTML page recieves an input event it encodes that information into pixels in the on-screen pattern, drawn using the canvas element. Meanwhile the server is taking screenshots every few milliseconds. By decoding the pixel pattern the server can determine to within a few milliseconds how long it takes the browser to respond to each input event.
+
+The native reference test is special because it requires extra support from the server. Using the native APIs of each platform, the server creates a special benchmark window that draws the same pattern as the test webpage, and responds to keyboard input in the same way. To ensure fairness when compared with the browser, this window is opened in a separate process and uses OpenGL to draw the pattern on the screen. The benchmark window opens as a popup window, only 1 pixel tall and without a border or title bar, so it's almost unnoticeable.
 
 ## License and distribution
 
@@ -44,12 +46,24 @@ The Web Latency Benchmark is licensed under the Apache License version 2.0. This
 
 ## TODO
 
-* Improve the styling and presentation of the test pages and add more explanation about what each test is doing.
 * Embed the test HTML/JS into the executable for release builds for easier distribution.
-* Windows has a partial implementation of a "reference window" which implements the tests in pure C++ to establish a lower bound on what kind of latency is possible to achieve. (See the open_native_reference_window function.) This should be integrated into the main test page and implemented on the other platforms too.
-* Defend against non-test webpages making XMLHttpRequests to the server (a possible security issue, since the screenshotting code isn't security audited).
-* Clean up latency-benchmark.html and latency-benchmark.js. Separate the JavaScript into more files.
+* Allow canceling the test with the Esc key.
+* Disable mouse and keyboard input during the test to avoid interference.
+* Hide the mouse cursor during the test.
+* Defend against non-test webpages making XMLHttpRequests to the server (a possible security issue, since the server code isn't security audited).
 * Find a way to share constants like the test timeout between JS and C.
-* Test more causes of jank: audio/video loading, plugins, JS parsing, JS execution, GC, worker GC, worker JS parsing/execution, HTML parsing, CSS parsing, layout, DNS resolution, window resizing, image resizing, XHR starting/ending, plus all of the above in an iframe or popup.
-* IE9 doesn't support typed arrays; support it anyway using a polyfill for typed arrays.
-* Support Windows Vista. Look into IE7/8 support with a polyfill for 2D canvas.
+* Test more possible causes of jank:
+    * audio/video loading
+    * plugins
+    * JavaScript parsing
+    * GC
+    * Web Worker JavaScript parsing/execution
+    * GC in a worker
+    * HTML parsing
+    * CSS parsing
+    * layout
+    * DNS resolution
+    * window resizing
+    * image resizing
+    * XHR starting/ending
+    * All of the above in an iframe or popup.
