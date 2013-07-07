@@ -24,6 +24,7 @@ NSOpenGLContext *context;
 uint8_t pattern[pattern_bytes];
 static int scrolls = 0;
 static int key_downs = 0;
+static int esc_presses = 0;
 
 // This callback is called for each display refresh by CVDisplayLink so that we
 // can draw at exactly the display's refresh rate.
@@ -55,7 +56,7 @@ static CVReturn vsync_callback(
   // We must lock the OpenGL context since it's shared with the main thread.
   CGLLockContext((CGLContextObj)[context CGLContextObj]);
   [context makeCurrentContext];
-  draw_pattern_with_opengl(pattern, scrolls, key_downs);
+  draw_pattern_with_opengl(pattern, scrolls, key_downs, esc_presses);
   [context flushBuffer];
   CGLUnlockContext((CGLContextObj)[context CGLContextObj]);
   return kCVReturnSuccess;
@@ -132,7 +133,7 @@ int main(int argc, char *argv[])
     [context setView:[window contentView]];
     // Draw the test pattern on the window before it is shown.
     [context makeCurrentContext];
-    draw_pattern_with_opengl(pattern, 0, 0);
+    draw_pattern_with_opengl(pattern, 0, 0, 0);
     [context flushBuffer];
     // Show the window.
     [window makeKeyAndOrderFront:window];
@@ -150,6 +151,9 @@ int main(int argc, char *argv[])
       return nil;
     }];
     [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:^NSEvent *(NSEvent *event) {
+      if ([event keyCode] == 53) {
+        esc_presses++;
+      }
       key_downs++;
       return nil;
     }];

@@ -35,7 +35,7 @@ int64_t biggest_draw_time_gap = 0;
 // Updates the given pattern with the given event data, then draws the pattern
 // to the current OpenGL context.
 void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events,
-                              int keydown_events) {
+                              int keydown_events, int esc_presses) {
   int64_t time = get_nanoseconds();
   if (last_draw_time > 0) {
     if (time - last_draw_time > biggest_draw_time_gap) {
@@ -45,7 +45,11 @@ void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events,
     }
   }
   last_draw_time = time;
-  pattern[4 * 4 + 2] = TEST_MODE_JAVASCRIPT_LATENCY;
+  if (esc_presses == 0) {
+    pattern[4 * 4 + 2] = TEST_MODE_JAVASCRIPT_LATENCY;
+  } else {
+    pattern[4 * 4 + 2] = TEST_MODE_ABORT;
+  }
   // Update the pattern with the number of scroll events mod 255.
   pattern[4 * 5] = pattern[4 * 5 + 1] = pattern[4 * 5 + 2] = scroll_events;
   // Update the pattern with the number of keydown events mod 255.

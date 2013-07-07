@@ -55,7 +55,7 @@ bool measure_latency(
 // Updates the given pattern with the given event data, then draws the pattern to
 // the current OpenGL context.
 void draw_pattern_with_opengl(uint8_t pattern[], int scroll_events,
-                              int keydown_events);
+                              int keydown_events, int esc_presses);
 
 // Parses the magic pattern from a hexadecimal encoded string and fills
 // parsed_pattern with the result. parsed_pattern must be a buffer at least
