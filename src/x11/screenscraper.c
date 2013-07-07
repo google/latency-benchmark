@@ -15,11 +15,12 @@
  */
 
 #include "../screenscraper.h"
-#include <pthread.h>
+#include "../latency-benchmark.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>  // XGetPixel, XDestroyImage
 #include <X11/keysym.h> // XK_Z
 #include <X11/extensions/XTest.h>
+#include <GL/glx.h>
 #include <stddef.h>
 #include <sys/time.h>   // gettimeofday
 #include <string.h>     // memset
@@ -30,6 +31,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <limits.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <signal.h>
+
+
 
 static Display *display = NULL;
 
@@ -46,7 +52,6 @@ screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width,
     uint32_t height) {
   if (!display) {
     display = XOpenDisplay(NULL);
-    XInitThreads();
     if (!display) {
       return false;
     }
@@ -100,7 +105,6 @@ void free_screenshot(screenshot *shot) {
 bool send_keystroke_z() {
   if (!display) {
     display = XOpenDisplay(NULL);
-    XInitThreads();
     if (!display) {
       return false;
     }
@@ -130,7 +134,6 @@ bool send_keystroke_z() {
 bool send_scroll_down(int x, int y) {
   if (!display) {
     display = XOpenDisplay(NULL);
-    XInitThreads();
     if (!display) {
       return false;
     }
@@ -217,75 +220,114 @@ bool open_browser(const char *url) {
 }
 
 
-static pthread_t thread;
-static bool thread_running = false;
-static uint8_t *test_pattern = NULL;
-
-
-void *native_reference_window_thread(void *ignored) {
-  Display *thread_display = XOpenDisplay(NULL);
-  assert(thread_display);
-  if (!thread_display) {
-    return NULL;
+static void native_reference_window_event_loop(uint8_t pattern[]) {
+  // This function should only be called from a child process that isn't yet
+  // connected to the X server.
+  assert(!display);
+  display = XOpenDisplay(NULL);
+  assert(display);
+  // Initialize GLX.
+  int visual_attributes[] = { GLX_RGBA,
+                              GLX_DOUBLEBUFFER,
+                              GLX_RED_SIZE, 1,
+                              GLX_GREEN_SIZE, 1,
+                              GLX_BLUE_SIZE, 1,
+                              None,
+                            };
+  XVisualInfo *xvi = glXChooseVisual(display, DefaultScreen(display),
+                                     visual_attributes);
+  assert(xvi);
+  GLXContext context = glXCreateContext(display, xvi, NULL, true);
+  assert(context);
+  if (!context) {
+    debug_log("failed to initialize OpenGL");
+    exit(1);
   }
-  assert(test_pattern);
-  Window window = XCreateSimpleWindow(thread_display, RootWindow(thread_display, 0), 100, 100, 100, 100, 0, 0, 0);
-  XSelectInput(thread_display, window, KeyPressMask | ButtonPressMask | ExposureMask);
-  XmbSetWMProperties(thread_display, window, "Test window", NULL, NULL, 0, NULL, NULL, NULL);
-  XMapRaised(thread_display, window);
-  while (thread_running) {
-    while (XPending(thread_display)) {
+
+  // Create a window with the correct colormap for GL rendering.
+  Colormap colormap = XCreateColormap(display, RootWindow(display, 0),
+                                      xvi->visual, AllocNone);
+  XSetWindowAttributes xswa;
+  memset(&xswa, 0, sizeof(xswa));
+  xswa.colormap = colormap;
+  // Prevent the window manager from moving this window or putting decorations
+  // on it.
+  xswa.override_redirect = true;
+  Window window = XCreateWindow(display, RootWindow(display, 0), 500, 500,
+                                pattern_pixels, 1, 0, xvi->depth, InputOutput,
+                                xvi->visual, CWColormap | CWOverrideRedirect,
+                                &xswa);
+  assert(window);
+  XmbSetWMProperties(display, window, "Test window", NULL, NULL, 0, NULL, NULL,
+                     NULL);
+  XSelectInput(display, window, KeyPressMask | ButtonPressMask | ExposureMask);
+
+  // Draw the pattern on the window before showing it.
+  bool success = glXMakeCurrent(display, window, context);
+  assert(success);
+  int scrolls = 0;
+  int key_downs = 0;
+  draw_pattern_with_opengl(pattern, scrolls, key_downs);
+  glXSwapBuffers(display, window);
+
+  // Show the window.
+  XMapRaised(display, window);
+  // Override-redirect windows don't automatically gain focus when mapped, so we
+  // have to steal it manually.
+  XSetInputFocus(display, window, RevertToParent, CurrentTime);
+
+  // Process X11 events in a loop forever unless the parent process dies.
+  while (getppid() != 1) {
+    while (XPending(display)) {
       XEvent event;
-      XNextEvent(thread_display, &event);
+      XNextEvent(display, &event);
       if (event.type == ButtonPress) {
         // This is probably a mousewheel event.
-        test_pattern[4 * 5 + 0]++;
-        test_pattern[4 * 5 + 1]++;
-        test_pattern[4 * 5 + 2]++;
+        scrolls++;
       } else if (event.type == KeyPress) {
-        test_pattern[4 * 4 + 1]++;
+        key_downs++;
       }
     }
-    test_pattern[4 * 6 + 0]++;
-    test_pattern[4 * 6 + 1]++;
-    test_pattern[4 * 6 + 2]++;
-    test_pattern[4 * 4 + 0]++;
-    for (int i = 0; i < pattern_bytes; i += 4) {
-      XSetForeground(thread_display, DefaultGC(thread_display, 0), test_pattern[i + 2] << 16 | test_pattern[i + 1] << 8 | test_pattern[i]);
-      XDrawPoint(thread_display, window, DefaultGC(thread_display, 0), i / 4, 0);
-    }
+    draw_pattern_with_opengl(pattern, scrolls, key_downs);
+    glXSwapBuffers(display, window);
     usleep(1000 * 5);
   }
-  XCloseDisplay(thread_display);
-  return NULL;
+  XCloseDisplay(display);
 }
+
+
+static pid_t window_process_pid = 0;
 
 
 bool open_native_reference_window(uint8_t *test_pattern_for_window) {
-  if (thread_running) {
+  if (window_process_pid != 0) {
+    debug_log("Native reference window already open");
     return false;
   }
-  if (!display) {
-    display = XOpenDisplay(NULL);
-    XInitThreads();
-    if (!display) {
-      return false;
-    }
+  window_process_pid = fork();
+  if (!window_process_pid) {
+    // Child process. Throw away the X11 display connection from the parent
+    // process; we will create a new one for the child.
+    display = NULL;
+    native_reference_window_event_loop(test_pattern_for_window);
+    exit(0);
   }
-  test_pattern = test_pattern_for_window;
-  thread_running = true;
-  pthread_create(&thread, NULL, &native_reference_window_thread, NULL);
-  // Wait for window to show up and be painted.
-  usleep(1000 * 1000);
+  // Parent process. Wait for the child to launch and show its window before
+  // returning.
+  usleep(2000000 /* 2 seconds */);
   return true;
 }
 
-
 bool close_native_reference_window() {
-  if (!thread_running) {
+  if (window_process_pid == 0) {
+    debug_log("Native reference window not open");
     return false;
   }
-  thread_running = false;
-  pthread_join(thread, NULL);
+  int r = kill(window_process_pid, SIGKILL);
+  window_process_pid = 0;
+  if (r) {
+    debug_log("Failed to close native reference window");
+    return false;
+  }
   return true;
 }

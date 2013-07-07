@@ -1,10 +1,10 @@
 #!/bin/bash
 cd "$( dirname "${BASH_SOURCE[0]}" )"
+# Auto regeneration is disabled because it is broken in GYP when using
+# --generator-output.
 ./third_party/gyp/gyp \
     --depth=. \
     --generator-output=build \
-    -G msvs_version=2012e \
+    -Gauto_regeneration=0 \
     -f make \
-    -f xcode \
-    -f msvs
-echo "Note: the 'Missing input file' and 'not yet implemented key 'ARCHS'' warnings can be ignored."
+    -f xcode

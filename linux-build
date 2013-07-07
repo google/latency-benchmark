@@ -1,5 +1,6 @@
 #!/bin/bash
 cd "$( dirname "${BASH_SOURCE[0]}" )"
+./generate-project-files
 export CC=clang
 export CXX=clang++
 cd build

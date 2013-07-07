@@ -84,14 +84,12 @@
     },
     'conditions': [
       ['OS=="linux"', {
-        'ldflags': [
-          '-pthread',
-        ],
         'link_settings': {
           'libraries' : [
           '-ldl',
           '-lX11',
           '-lXtst',
+          '-lGL',
           ],
         },
       }],

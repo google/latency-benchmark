@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
-#include <limits.h>
-
 void run_server(void);
 
 int main(int argc, const char **argv)
