@@ -69,7 +69,7 @@ static void report_latency(struct mg_connection *connection,
     mg_printf(connection, "HTTP/1.1 500 Internal Server Error\r\n"
               "Access-Control-Allow-Origin: *\r\n"
               "Content-Type: text/plain\r\n\r\n"
-              "Test failed. %s", error);
+              "%s", error);
   } else {
     // Send the measured latency information back as JSON.
     mg_printf(connection, "HTTP/1.1 200 OK\r\n"

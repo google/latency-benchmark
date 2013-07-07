@@ -70,9 +70,9 @@ a:visited {
   position:fixed;
   top: 2px;
   left: 0px;
-  width: 100%;
+  width: 90%;
   height: 100%;
-  padding-left: 40px;
-  padding-right: 40px;
+  padding-left: 5%;
+  padding-right: 5%;
   background-color: black;
 }

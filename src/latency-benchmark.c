@@ -395,6 +395,10 @@ bool measure_latency(
           "stationary and focused during the entire test.";
       return false;
     }
+    if (measurement.test_mode == TEST_MODE_ABORT) {
+      *error = "Test aborted.";
+      return false;
+    }
     screenshots++;
     int64_t screenshot_time = measurement.screenshot_time;
     int64_t previous_screenshot_time = previous_measurement.screenshot_time;

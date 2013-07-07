@@ -21,7 +21,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h> // Required by gl.h on Windows :(
 #endif
-#ifdef _MACOSX
+#ifdef __APPLE__
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
@@ -35,6 +35,7 @@ typedef enum {
   TEST_MODE_PAUSE_TIME = 3,
   TEST_MODE_PAUSE_TIME_TEST_FINISHED = 4,
   TEST_MODE_NATIVE_REFERENCE = 5,
+  TEST_MODE_ABORT = 6,
 } test_mode_t;
 
 // Main test function. Locates the given magic pixel pattern on the screen, then

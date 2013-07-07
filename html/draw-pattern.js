@@ -108,6 +108,10 @@ window.onkeydown = function(e) {
   if (e.keyCode == 90) {
     zPresses++;
   }
+  // If Esc is pressed, abort the current test.
+  if (e.keyCode == 27) {
+    testMode = TEST_MODES.ABORT;
+  }
 };
 
 
@@ -137,7 +141,8 @@ var TEST_MODES = {
   SCROLL_LATENCY: 2,
   PAUSE_TIME: 3,
   PAUSE_TIME_TEST_FINISHED: 4,
-  NATIVE_REFERENCE: 5
+  NATIVE_REFERENCE: 5,
+  ABORT: 6,
 }
 var callback = function() {
   raf(callback);

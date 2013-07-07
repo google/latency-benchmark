@@ -39,7 +39,7 @@ var fail = function(test, text) {
     test.resultCell.className += ' failed';
     test.resultCell.textContent = '✗';
     test.infoCell.textContent = text || '';
-    runNextTest(test);
+    testMode = TEST_MODES.ABORT;
   }
 };
 var error = function(test, text) {
@@ -48,7 +48,7 @@ var error = function(test, text) {
     test.resultCell.className += ' testError';
     test.resultCell.textContent = '✗';
     test.infoCell.textContent = text || 'test error';
-    runNextTest(test);
+    testMode = TEST_MODES.ABORT;
   }
 };
 
@@ -474,7 +474,8 @@ var runNextTest = function(previousTest) {
     return;
   }
   var test = tests[testIndex];
-  test.infoCell.textContent = 'Testing... Do not move or deactivate the browser window.';
+  test.infoCell.textContent = 'Testing... Press Esc to abort.';
+  test.resultCell.textContent = '⋯';
   setTimeout(function() { checkTimeout(test); }, 50000);
   if (test.test) {
     setTimeout(function() {
