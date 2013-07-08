@@ -47,7 +47,6 @@ The Web Latency Benchmark is licensed under the Apache License version 2.0. This
 ## TODO
 
 * Embed the test HTML/JS into the executable for release builds for easier distribution.
-* Allow canceling the test with the Esc key.
 * Disable mouse and keyboard input during the test to avoid interference.
 * Hide the mouse cursor during the test.
 * Defend against non-test webpages making XMLHttpRequests to the server (a possible security issue, since the server code isn't security audited).
