@@ -107,6 +107,13 @@ static screenshot *take_screenshot_with_dxgi(uint32_t x, uint32_t y,
       InitOnceExecuteOnce(&directx_initialization, &create_device, NULL, NULL);
   assert(r);
   EnterCriticalSection(&directx_critical_section);
+  if (dxgi_output_duplication == NULL) {
+    hr = dxgi_output1->DuplicateOutput(device, &dxgi_output_duplication);
+    if (hr != S_OK) {
+      debug_log("Failed to create output duplication interface.");
+      return false;
+    }
+  }
   DXGI_OUTDUPL_FRAME_INFO frame_info;
   frame_info.AccumulatedFrames = 0;
   IDXGIResource *screen_resource = NULL;
@@ -124,13 +131,16 @@ static screenshot *take_screenshot_with_dxgi(uint32_t x, uint32_t y,
       last_screenshot_time = new_screenshot_time;
       break;
     } else if (hr != S_OK) {
-      // TODO: This happens if the screensaver came on or the computer went to
-      // sleep. Try recreating the output duplication interface before giving
-      // up.
+      // This happens if the screensaver came on or the computer went to sleep.
+      // Try recreating the output duplication interface before giving up.
       debug_log("AcquireNextFrame failed");
       dxgi_output_duplication->Release();
+      dxgi_output_duplication = NULL;
       hr = dxgi_output1->DuplicateOutput(device, &dxgi_output_duplication);
-      assert(hr == S_OK);
+      if (hr != S_OK) {
+        debug_log("Failed to recreate output duplication interface.");
+        return false;
+      }
     } else {
       // This was a mouse movement, not a screenshot. Try again.
       screen_resource->Release();
