@@ -1,8 +1,6 @@
 ![Screenshot](http://google.github.io/latency-benchmark/screenshot.png "Web Latency Benchmark")
 
-### Download for Windows: [latency-benchmark.exe](http://google.github.io/latency-benchmark/latency-benchmark.exe)
-### Download for Mac: [latency-benchmark-mac.zip](http://google.github.io/latency-benchmark/latency-benchmark-mac.zip)
-### Download for Linux: [latency-benchmark-linux.zip](http://google.github.io/latency-benchmark/latency-benchmark-linux.zip)
+#### Download for Windows: [latency-benchmark.exe](http://google.github.io/latency-benchmark/latency-benchmark.exe)<br/>Download for Mac: [latency-benchmark-mac.zip](http://google.github.io/latency-benchmark/latency-benchmark-mac.zip)<br/>Download for Linux: [latency-benchmark-linux.zip](http://google.github.io/latency-benchmark/latency-benchmark-linux.zip)
 
 ## About the benchmark
 
@@ -14,7 +12,9 @@ If you're dragging a map around, does it snap to your mouse cursor instantly, or
 
 In an ideal browser, input latency would be 1 frame or less at 60 FPS, and nothing would ever cause jank. In today's browsers, input latency can range as high as 8-10 frames, and jank caused by image loading, slow JavaScript, and many other things can last for hundreds of frames. How does your browser fare?
 
-## How the test works
+## For developers
+
+### How the test works
 
 The Web Latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.
 
@@ -22,11 +22,9 @@ There are two main components: the latency-benchmark server (written in C/C++) a
 
 The native reference test is special because it requires extra support from the server. Using the native APIs of each platform, the server creates a special benchmark window that draws the same pattern as the test webpage, and responds to keyboard input in the same way. To ensure fairness when compared with the browser, this window is opened in a separate process and uses OpenGL to draw the pattern on the screen. The benchmark window opens as a popup window, only 1 pixel tall and without a border or title bar, so it's almost unnoticeable.
 
-## License and distribution
+### License and distribution
 
 The Web Latency Benchmark is licensed under the Apache License version 2.0. This is an open source project; it is not an official Google product.
-
-## For developers
 
 ### Build prerequisites
 
@@ -46,7 +44,7 @@ First, you need to `git submodule init && git submodule update` to fetch the sub
 
 You shouldn't make any changes to the XCode or Visual Studio project files directly. Instead, you should edit `latency-benchmark.gyp` to reflect the changes you want, and re-run the `generate-project-files` script to update the project files with the changes. This ensures that the project files stay in sync across platforms.
 
-## TODO
+### TODO
 
 * Disable mouse and keyboard input during the test to avoid interference.
 * Hide the mouse cursor during the test.
