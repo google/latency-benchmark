@@ -17,13 +17,15 @@
 #include "stdafx.h"
 #include "../latency-benchmark.h"
 #include "../screenscraper.h"
+
 void run_server(void);
 
-BOOL (APIENTRY *wglSwapIntervalEXT)(int) = 0;
-HGLRC context = NULL;
-uint8_t pattern[pattern_bytes];
+static BOOL (APIENTRY *wglSwapIntervalEXT)(int) = 0;
+static HGLRC context = NULL;
+static uint8_t pattern[pattern_bytes];
 static int scrolls = 0;
 static int key_downs = 0;
+static int esc_presses = 0;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -37,6 +39,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     InvalidateRect(hwnd, NULL, false);
     break;
   case WM_KEYDOWN:
+    if (wParam == VK_ESCAPE) {
+      esc_presses++;
+    }
     key_downs++;
     InvalidateRect(hwnd, NULL, false);
     break;
@@ -44,7 +49,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     PAINTSTRUCT ps;
     BeginPaint(hwnd, &ps);
     wglMakeCurrent(ps.hdc, context);
-    draw_pattern_with_opengl(pattern, scrolls, key_downs);
+    draw_pattern_with_opengl(pattern, scrolls, key_downs, esc_presses);
     SwapBuffers(ps.hdc);
     EndPaint(hwnd, &ps);
     break;

@@ -19,6 +19,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>  // XGetPixel, XDestroyImage
 #include <X11/keysym.h> // XK_Z
+#include <X11/XKBlib.h>
 #include <X11/extensions/XTest.h>
 #include <GL/glx.h>
 #include <stddef.h>
@@ -267,7 +268,8 @@ static void native_reference_window_event_loop(uint8_t pattern[]) {
   assert(success);
   int scrolls = 0;
   int key_downs = 0;
-  draw_pattern_with_opengl(pattern, scrolls, key_downs);
+  int esc_presses = 0;
+  draw_pattern_with_opengl(pattern, scrolls, key_downs, esc_presses);
   glXSwapBuffers(display, window);
 
   // Show the window.
@@ -285,10 +287,14 @@ static void native_reference_window_event_loop(uint8_t pattern[]) {
         // This is probably a mousewheel event.
         scrolls++;
       } else if (event.type == KeyPress) {
+        if (XkbKeycodeToKeysym(display, event.xkey.keycode, 0, 0) ==
+            XK_Escape) {
+          esc_presses++;
+        }
         key_downs++;
       }
     }
-    draw_pattern_with_opengl(pattern, scrolls, key_downs);
+    draw_pattern_with_opengl(pattern, scrolls, key_downs, esc_presses);
     glXSwapBuffers(display, window);
     usleep(1000 * 5);
   }
@@ -314,7 +320,7 @@ bool open_native_reference_window(uint8_t *test_pattern_for_window) {
   }
   // Parent process. Wait for the child to launch and show its window before
   // returning.
-  usleep(2000000 /* 2 seconds */);
+  usleep(1000000 /* 1 second */);
   return true;
 }
 
