@@ -1,18 +1,32 @@
 ![Screenshot](http://google.github.io/latency-benchmark/screenshot.png "Web Latency Benchmark")
 
-This benchmark measures *input* latency: that is, the time between when an input event (such as a mouse click) is received by the browser, and when the browser responds by drawing to the screen. It also quantifies jank by measuring how many frames of animation the browser skips while performing tasks such as image loading or executing JavaScript.
+### Download for Windows: [latency-benchmark.exe](http://google.github.io/latency-benchmark/latency-benchmark.exe)
+### Download for Mac: [latency-benchmark-mac.zip](http://google.github.io/latency-benchmark/latency-benchmark-mac.zip)
+### Download for Linux: [latency-benchmark-linux.zip](http://google.github.io/latency-benchmark/latency-benchmark-linux.zip)
 
-This is different from benchmarks like SunSpider which measure raw JavaScript execution speed but aren't sensitive to latency and jank. Latency and jank determine how responsive a browser feels in use, and are very important for HTML5 games and rich web apps, but aren't well tested by existing benchmarks because they can't be measured by JavaScript alone. The Web Latency Benchmark uses a local server to perform the latency measurements.
+## About the benchmark
 
-## Disclaimer
+The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness.
 
-The Web Latency Benchmark is not complete and is under active development. Results should not be considered definitive. The intended audience is currently only web browser developers.
+Other benchmarks might tell you that your browser can load a big page in 5 seconds, but what happens *during* those 5 seconds? Can you scroll, or is the page frozen? Can you start typing, or do you have to wait?
 
-## How to build/run
+If you're dragging a map around, does it snap to your mouse cursor instantly, or does it feel like it's being dragged through molasses? If you're playing a game, does your guy jump right when you hit the button, or is there a little delay at the worst possible time?
 
-### Running the benchmark
+In an ideal browser, input latency would be 1 frame or less at 60 FPS, and nothing would ever cause jank. In today's browsers, input latency can range as high as 8-10 frames, and jank caused by image loading, slow JavaScript, and many other things can last for hundreds of frames. How does your browser fare?
 
-[This zip file](http://google.github.io/latency-benchmark/latency-benchmark.zip) includes everything you need to run the benchmark on Windows, Mac, and Linux. Just [download](http://google.github.io/latency-benchmark/latency-benchmark.zip), extract all files, and run the executable for your platform.
+## How the test works
+
+The Web Latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.
+
+There are two main components: the latency-benchmark server (written in C/C++) and the HTML/JavaScript benchmark page. The HTML page draws a special pattern of pixels to the screen using WebGL or Canvas 2D, then makes an XMLHTTPRequest to the server to start the latency measurement. The server locates the browser window by searching a screenshot for the special pattern. Once the browser window is located, the server starts sending input events. Each time the HTML page recieves an input event it encodes that information into pixels in the on-screen pattern, drawn using the canvas element. Meanwhile the server is taking screenshots every few milliseconds. By decoding the pixel pattern the server can determine to within a few milliseconds how long it takes the browser to respond to each input event.
+
+The native reference test is special because it requires extra support from the server. Using the native APIs of each platform, the server creates a special benchmark window that draws the same pattern as the test webpage, and responds to keyboard input in the same way. To ensure fairness when compared with the browser, this window is opened in a separate process and uses OpenGL to draw the pattern on the screen. The benchmark window opens as a popup window, only 1 pixel tall and without a border or title bar, so it's almost unnoticeable.
+
+## License and distribution
+
+The Web Latency Benchmark is licensed under the Apache License version 2.0. This is an open source project; it is not an official Google product.
+
+## For developers
 
 ### Build prerequisites
 
@@ -32,31 +46,17 @@ First, you need to `git submodule init && git submodule update` to fetch the sub
 
 You shouldn't make any changes to the XCode or Visual Studio project files directly. Instead, you should edit `latency-benchmark.gyp` to reflect the changes you want, and re-run the `generate-project-files` script to update the project files with the changes. This ensures that the project files stay in sync across platforms.
 
-## How it works
-
-The Web Latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.
-
-There are two main components: the latency-benchmark server (written in C/C++) and the HTML/JavaScript benchmark page. The HTML page draws a special pattern of pixels to the screen using WebGL or Canvas 2D, then makes an XMLHTTPRequest to the server to start the latency measurement. The server locates the browser window by searching a screenshot for the special pattern. Once the browser window is located, the server starts sending input events. Each time the HTML page recieves an input event it encodes that information into pixels in the on-screen pattern, drawn using the canvas element. Meanwhile the server is taking screenshots every few milliseconds. By decoding the pixel pattern the server can determine to within a few milliseconds how long it takes the browser to respond to each input event.
-
-The native reference test is special because it requires extra support from the server. Using the native APIs of each platform, the server creates a special benchmark window that draws the same pattern as the test webpage, and responds to keyboard input in the same way. To ensure fairness when compared with the browser, this window is opened in a separate process and uses OpenGL to draw the pattern on the screen. The benchmark window opens as a popup window, only 1 pixel tall and without a border or title bar, so it's almost unnoticeable.
-
-## License and distribution
-
-The Web Latency Benchmark is licensed under the Apache License version 2.0. This is an open source project; it is not an official Google product.
-
 ## TODO
 
-* Embed the test HTML/JS into the executable for release builds for easier distribution.
-* Allow canceling the test with the Esc key.
 * Disable mouse and keyboard input during the test to avoid interference.
 * Hide the mouse cursor during the test.
-* Defend against non-test webpages making XMLHttpRequests to the server (a possible security issue, since the server code isn't security audited).
 * Find a way to share constants like the test timeout between JS and C.
 * Test more possible causes of jank:
     * audio/video loading
     * plugins
     * JavaScript parsing
     * GC
+    * WebGL shader compilation
     * Web Worker JavaScript parsing/execution
     * GC in a worker
     * HTML parsing

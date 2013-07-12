@@ -33,7 +33,9 @@
 #define INFINITY (std::numeric_limits<double>::infinity())
 #include <intrin.h>
 #define __sync_fetch_and_add _InterlockedExchangeAdd
-#define snprintf _snprintf
+// Ugh, MSVC doesn't have a sensible snprintf. sprintf_s is close, as long as
+// you don't care about the return value.
+#define snprintf sprintf_s
 #endif
 
 typedef struct {

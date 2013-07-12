@@ -8,9 +8,32 @@
         'src/latency-benchmark.h',
         'src/screenscraper.h',
         'src/server.c',
+        '<(INTERMEDIATE_DIR)/packaged-html-files.c',
       ],
       'dependencies': [
         'mongoose',
+      ],
+      'actions': [
+        {
+          'action_name': 'package html files',
+          'inputs': [
+            'files-to-c-arrays.py',
+            'html/2048.png',
+            'html/compatibility.js',
+            'html/draw-pattern.js',
+            'html/gradient.png',
+            'html/index.html',
+            'html/keep-server-alive.js',
+            'html/latency-benchmark.css',
+            'html/latency-benchmark.html',
+            'html/latency-benchmark.js',
+            'html/worker.js',
+          ],
+          'outputs': [
+            '<(INTERMEDIATE_DIR)/packaged-html-files.c',
+          ],
+          'action': ['python', 'files-to-c-arrays.py', '<@(_outputs)', '<@(_inputs)'],
+        },
       ],
       'conditions': [
         ['OS=="linux"', {
@@ -79,7 +102,7 @@
             'Optimization': '3', # full optimization (/Ox)
           },
         },
-        'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL': 's' } # -Os optimize for size+speed
+        'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL': 's' }, # -Os optimize for size+speed
       }
     },
     'conditions': [

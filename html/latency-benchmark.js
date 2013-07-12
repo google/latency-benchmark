@@ -474,7 +474,7 @@ var runNextTest = function(previousTest) {
     return;
   }
   var test = tests[testIndex];
-  test.infoCell.textContent = 'Testing... Press Esc to abort.';
+  test.infoCell.textContent = 'Running test. Press Esc to abort.';
   test.resultCell.textContent = '⋯';
   setTimeout(function() { checkTimeout(test); }, 50000);
   if (test.test) {
