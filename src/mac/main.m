@@ -114,7 +114,9 @@ int main(int argc, char *argv[])
     NSWindow *window = [[KeyWindow alloc] initWithContentRect:window_rect styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
     // Create an OpenGL context.
     NSOpenGLPixelFormatAttribute attrs[] = { NSOpenGLPFADoubleBuffer, 0 };
-    context = [[NSOpenGLContext alloc] initWithFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] shareContext:nil];
+    NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+    context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
+    [pixelFormat release];
     // Disable vsync. When vsync is enabled calling [context flushBuffer] can
     // block for up to 1 frame, which can add unwanted latency. Actually Quartz
     // sometimes overrides this setting and temporarily turns vsync back on, but
