@@ -113,11 +113,15 @@ static void serve_file_from_memory_or_404(struct mg_connection *connection) {
     uri = "/index.html";
   }
   // Construct the file's full path relative to the document root.
+  const int max_path = 2048;
+  char file_path[max_path];
   size_t path_length = strlen(uri) + strlen(document_root) + 1;
-  char file_path[path_length];
-  snprintf(file_path, path_length, "%s%s", document_root, uri);
+  const char *file = NULL;
   size_t file_size = 0;
-  const char *file = get_file(file_path, &file_size);
+  if (path_length < max_path) {
+    snprintf(file_path, path_length, "%s%s", document_root, uri);
+    file = get_file(file_path, &file_size);
+  }
   if (file) {
     // We've located the file in memory. Serve it with headers to disable
     // caching.

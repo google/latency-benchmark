@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import os
+import sys
 
 if len(sys.argv) < 3:
     print 'Usage: ' + sys.argv[0] + 'output_file input_file1 input_file2 ... input_fileN'
@@ -34,7 +34,7 @@ filesizes = []
 filepaths = []
 filearrays = []
 for filepath in sys.argv[2:]:
-    filepaths.append(filepath)
+    filepaths.append(filepath.replace('\\', '/').lstrip('./'))
     file = open(filepath, 'rb').read()
     filesizes.append(len(file))
     escapedfile = '\\x' + '\\x'.join(chunk(file.encode('hex'), 2))

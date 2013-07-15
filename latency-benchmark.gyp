@@ -33,6 +33,7 @@
             '<(INTERMEDIATE_DIR)/packaged-html-files.c',
           ],
           'action': ['python', 'files-to-c-arrays.py', '<@(_outputs)', '<@(_inputs)'],
+          'msvs_cygwin_shell': 0,
         },
       ],
       'conditions': [
@@ -88,7 +89,7 @@
         'msvs_settings': {
           'VCCLCompilerTool': {
             'RuntimeLibrary': 1, # static debug
-            'Optimization': '0', # optimizeDisabled (/Od)
+            'Optimization': 0, # optimizeDisabled (/Od)
           },
         },
         'xcode_settings': {'GCC_OPTIMIZATION_LEVEL': 0 } # -O0 No optimization
@@ -99,7 +100,7 @@
         'msvs_settings': {
           'VCCLCompilerTool': {
             'RuntimeLibrary': 0, # static release
-            'Optimization': '3', # full optimization (/Ox)
+            'Optimization': 3, # full optimization (/Ox)
           },
         },
         'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL': 's' }, # -Os optimize for size+speed
@@ -128,10 +129,11 @@
     'msvs_settings': {
       'VCLinkerTool': {
         'GenerateDebugInformation': 'true',
-        'SubSystem': '2' # Windows
+        'SubSystem': 2, # Windows
       },
     },
     'xcode_settings': {
+      # This prevents a silly warning in XCode's UI ("Update project to recommended settings"). Unfortunately there's no way to prevent the warning on 'action' targets; oh well.
       'COMBINE_HIDPI_IMAGES': 'YES',
     },
   },
