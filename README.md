@@ -4,13 +4,13 @@
 
 ## About the benchmark
 
-The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness.
+The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness by directly measuring *latency* and *jank*.
 
-Other benchmarks might tell you that your browser can load a big page in 5 seconds, but what happens *during* those 5 seconds? Can you scroll, or is the page frozen? Can you start typing, or do you have to wait?
+Other benchmarks might tell you that your browser can load a big page in 5 seconds, but what happens *during* those 5 seconds? Can you scroll, or is the page frozen until it finishes loading? Can you start typing immediately, or do you have to wait for everything else to finish? That's jank.
 
-If you're dragging a map around, does it snap to your mouse cursor instantly, or does it feel like it's being dragged through molasses? If you're playing a game, does your guy jump right when you hit the button, or is there a little delay at the worst possible time?
+When you're dragging a map around does it snap to your mouse cursor instantly, or does it feel like it's being dragged through molasses? When you're playing a game does your avatar jump right when you hit the button, or is there a slight delay at the worst possible time? That's latency.
 
-In an ideal browser, input latency would be 1 frame or less at 60 FPS, and nothing would ever cause jank. In today's browsers, input latency can range as high as 8-10 frames, and jank caused by image loading, slow JavaScript, and many other things can last for hundreds of frames. How does your browser fare?
+In an ideal browser, input latency would be 1 frame or less at 60 FPS, and nothing would ever cause jank. In today's browsers, input latency can range as high as 8-10 frames, and jank can last for hundreds of frames due to image loading, JavaScript execution, garbage collection, etc. The Web Latency Benchmark quantifies exactly how much latency and jank your browser has.
 
 ## For developers
 
