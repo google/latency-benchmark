@@ -9,7 +9,7 @@ badScroll.onscroll = function() {
 
 function setupScrolling(div) {
   var content = '';
-  for (var i = 0; i < 50; i++) {
+  for (var i = 0; i < 20; i++) {
     content += div.innerHTML;
   }
   div.innerHTML = content;
@@ -17,6 +17,19 @@ function setupScrolling(div) {
 
 setupScrolling(goodScroll);
 setupScrolling(badScroll);
+
+var lastScroll = 0;
+var nextJank = 0;
+badScroll.onscroll = function(e) {
+  var now = Date.now();
+  if (now > nextJank) {
+    if (now - nextJank < 3000) {
+      var jankEnd = Date.now() + 333;
+      while (Date.now() < jankEnd);
+    }
+    nextJank = Date.now() + 500;
+  }
+}
 
 function setupDragging(div, latencyMs) {
   div.style.overflow = 'hidden';

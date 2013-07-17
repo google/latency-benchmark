@@ -3,23 +3,40 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Latency-benchmark by google</title>
+    <title>Web Latency Benchmark</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <style type="text/css">
+      .exampleContainer {
+        position: relative;
+      }
       .example {
-        width: 39%;
+        position: absolute;
+        width: 40%;
         margin: 5%;
-        height: 150px;
+        margin-top: 10px;
+        height: 200px;
         border: 1px solid lightgray;
         display: inline-block;
+        background-color: #FAFAFA;
+      }
+      .example.right {
+        position: relative;
+        left: 45%;
       }
       .example p {
-        margin: 10px;
+        padding: 10px;
+        margin: 0px;
       }
-      .example:nth-child(2n) {
-        background-color: #FAFAFA;
+      .example p:nth-child(2n) {
+        background-color: #F1F1F1;
+      }
+      .drag p {
+        border: 1px solid lightgray;
+        padding: 5px;
+        margin: 20px;
+        background-color: #F1F1F1;
       }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -31,7 +48,6 @@
     <div class="wrapper">
       <header>
         <h1>Web Latency Benchmark</h1>
-        <p>Tests web browser input latency and jank</p>
 
         <p class="view"><a href="https://github.com/google/latency-benchmark">View the Project on GitHub <small>google/latency-benchmark</small></a></p>
 
@@ -43,29 +59,46 @@
 
       </header>
       <section>
-        <p>The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness by directly measuring <em>latency</em> and <em>jank</em>.</p>
+        <a href="screenshot.png"><img src="screenshot.png" alt="Web Latency Benchmark screenshot"></img></a>
+        <h3>A new kind of benchmark that measures your web browser's <em>latency</em> and <em>jank</em>.</h3>
 
-        <img src="screenshot.png"></img>
+        <h2>Latency and Jank?</h2>
+        <p>Latency and jank represent the responsiveness of a browser's user interface. Common browser benchmarks such as <a href="https://www.webkit.org/perf/sunspider/sunspider.html">SunSpider</a> or <a href="https://developers.google.com/octane/">Octane</a> measure raw JavaScript speed, but <em>not</em> UI responsiveness. A browser could be fast at calculating 1,000,000 digits of pi and still slow at responding to your commands.</p>
 
-        <p>Other benchmarks might tell you that your browser can load a big page in 5 seconds, but what happens <em>during</em> those 5 seconds? Can you scroll, or is the page frozen until it finishes loading? Can you start typing immediately, or do you have to wait for everything else to finish? That's jank.</p>
-
-        <div id="goodScroll" class="example" style="overflow: scroll">
-          <p>Scroll me.<br/>I should scroll smoothly.<br/>I have no added jankiness.</p>
-        </div>
-        <div id="badScroll" class="example" style="overflow: scroll">
-          <p>Scroll me.<br/>I will be janky.<br/>I have extra jankiness added for this demonstration.</p>
-        </div>
-
-        <p>When you're dragging a map around does it snap to your mouse cursor instantly, or does it feel like it's being dragged through molasses? When you're playing a game does your avatar jump right when you hit the button, or is there a slight delay at the worst possible time? That's latency.</p>
-
-        <div id="goodDrag" class="example">
-          <p>Drag me.<br/>I have no added latency.</p>
-        </div>
-        <div id="badDrag" class="example">
-          <p>Drag me.<br/>I have extra latency added.</p>
+        <p>Here's an example of how latency affects responsiveness. Try dragging the two boxes below.</p>
+        <div class="exampleContainer">
+          <div id="goodDrag" class="example left drag">
+            <p>Drag me.<br/>I have no added latency.</p>
+          </div>
+          <div id="badDrag" class="example right drag">
+            <p>Drag me.<br/>I have 6 frames of added latency.</p>
+          </div>
         </div>
 
-        <p>In an ideal browser, input latency would be 1 frame or less at 60 FPS, and nothing would ever cause jank. In today's browsers, input latency can range as high as 8-10 frames, and jank can last for hundreds of frames due to image loading, JavaScript execution, garbage collection, etc. The Web Latency Benchmark quantifies exactly how much latency and jank your browser has.</p>
+        <p>Latency is measured here in frames, assuming 60 frames per second. 6 frames of added latency means it takes the box an extra 1/10 of a second to respond.Interactive web pages like maps and games need low latency.</p>
+
+        <p>Here's an example of jank. Try scrolling the two boxes below.</p>
+
+        <div class="exampleContainer">
+          <div id="goodScroll" class="example left" style="overflow: scroll">
+            <p>Scroll me.<br/>I should scroll smoothly.<br/>I have no added jankiness.</p>
+          </div>
+          <div id="badScroll" class="example right" style="overflow: scroll">
+            <p>Scroll me.<br/>I will be periodically interrupted by 20 frames of jank.</p>
+          </div>
+        </div>
+
+        <p>Jank happens when the browser stops updating the screen because it's busy doing something else. 20 frames of jank means everything pauses for 1/3 of a second. Jank can be caused by all sorts of things, including page layout, image loading, and JavaScript.</p>
+
+        <h2>Run the test</h2>
+
+        <p>Latency and jank can't be measured directly in JavaScript, so the <strong>Web Latency Benchmark</strong> is a combination of JavaScript and native code. Download and run the executable to start the test:</p>
+        <ul>
+          <li><a href="latency-benchmark.exe">Download for Windows</a></li>
+          <li><a href="latency-benchmark-mac.zip">Download for Mac</a></li>
+          <li><a href="latency-benchmark-linux.zip">Download for Linux</a></li>
+        </ul>
+
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/google">google</a>. It is an open source project, not an official Google product.</p>
