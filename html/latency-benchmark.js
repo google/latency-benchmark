@@ -16,6 +16,8 @@
 
 var delayedTests = [];
 
+var progressMessage = document.getElementById('progressMessage');
+
 var info = function(test, text) {
   if (!test.resultPresented) {
     test.resultPresented = true;
@@ -40,6 +42,7 @@ var fail = function(test, text) {
     test.resultCell.textContent = '✗';
     test.infoCell.textContent = text || '';
     testMode = TEST_MODES.ABORT;
+    progressMessage.textContent = 'Test failed.';
   }
 };
 var error = function(test, text) {
@@ -49,8 +52,18 @@ var error = function(test, text) {
     test.resultCell.textContent = '✗';
     test.infoCell.textContent = text || 'test error';
     testMode = TEST_MODES.ABORT;
+    progressMessage.textContent = 'Test failed.';
   }
 };
+var totalScore = 0;
+var totalPossibleScore = 0;
+var addScore = function(value, good, bad, weight) {
+  var score = (value - bad) / (good - bad);
+  if (score > 1) score = 1;
+  if (score < 0) score = 0;
+  totalScore += score * weight;
+  totalPossibleScore += weight;
+}
 
 var checkName = function() {
   if (!this.toCheck)
@@ -173,7 +186,7 @@ var requestServerTest = function(test, start, finish) {
       } else if (request.status == 500) {
         error(test, request.response);
       } else {
-        fail(test, 'couldn\'t contact server');
+        fail(test, 'Couldn\'t contact test server.');
       }
     }
   };
@@ -188,7 +201,9 @@ var inputLatency = function() {
   var test = this;
   testMode = TEST_MODES.JAVASCRIPT_LATENCY;
   requestServerTest(test, function() {}, function(response) {
-    pass(test, (response.keyDownLatencyMs/(1000/60)).toFixed(1) + ' frames latency');
+    var frames = response.keyDownLatencyMs/(1000/60);
+    addScore(frames, 0.5, 3, 1);
+    pass(test, frames.toFixed(1) + ' frames latency');
   });
 };
 
@@ -196,7 +211,9 @@ var scrollLatency = function() {
   var test = this;
   testMode = TEST_MODES.SCROLL_LATENCY;
   requestServerTest(test, function() {}, function(response) {
-    pass(test, (response.scrollLatencyMs/(1000/60)).toFixed(1) + ' frames latency');
+    var frames = response.scrollLatencyMs/(1000/60);
+    addScore(frames, 0.5, 3, 1);
+    pass(test, frames.toFixed(1) + ' frames latency');
   });
 };
 
@@ -229,13 +246,19 @@ var testJank = function() {
     for (var i = 0; i < test.report.length; i++) {
       switch (test.report[i]) {
       case 'css':
-        reports.push('CSS: ' + (response.maxCssPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
+        var jank = response.maxCssPauseTimeMs/(1000/60);
+        addScore(jank, 1, 5, .3);
+        reports.push('CSS: ' + jank.toFixed(1) + ' frames jank');
         break;
       case 'js':
-        reports.push('JavaScript: ' + (response.maxJSPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
+        var jank = response.maxJSPauseTimeMs/(1000/60);
+        addScore(jank, 1, 5, .3);
+        reports.push('JavaScript: ' + jank.toFixed(1) + ' frames jank');
         break;
       case 'scroll':
-        reports.push('Scrolling: ' + (response.maxScrollPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
+        var jank = response.maxScrollPauseTimeMs/(1000/60);
+        addScore(jank, 1, 5, .3);
+        reports.push('Scrolling: ' + jank.toFixed(1) + ' frames jank');
         break;
       }
     }
@@ -370,6 +393,9 @@ var tests = [
   { name: 'Scroll latency',
     info: 'Tests the delay from mousewheel movement to on-screen response.',
     test: scrollLatency },
+  { name: 'Native reference',
+    info: 'Tests the input latency of a native app\'s window for comparison to the browser.',
+    test: testNative },
   { name: 'Baseline jank',
     info: 'Tests responsiveness while the browser is idle.',
     test: testJank, blocker: control, report: ['css', 'js', 'scroll'] },
@@ -379,9 +405,6 @@ var tests = [
   { name: 'Image loading jank',
     info: 'Tests responsiveness during image loading.',
     test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
-  { name: 'Native reference',
-    info: 'Tests the input latency of a native app\'s window for comparison to the browser.',
-    test: testNative },
   // These tests work, but are disabled for now to focus on the latency test.
   // { name: 'requestAnimationFrame', test: checkName, toCheck: 'requestAnimationFrame' },
   // { name: 'Canvas 2D', test: checkName, toCheck: 'HTMLCanvasElement' },
@@ -471,10 +494,19 @@ var runNextTest = function(previousTest) {
   }
   var testIndex = nextTestIndex++;
   if (testIndex >= tests.length) {
+    // All tests successfully completed. Report the overall score as a number out of 10.
+    var scoreRatio = totalScore / totalPossibleScore;
+    var score = document.getElementById('score');
+    score.textContent = (scoreRatio * 10).toFixed(1);
+    // Make the score red for low values, green for high values.
+    score.style.color = 'hsl(' + (Math.pow(scoreRatio, 3) * 120) + ', 100%, 50%)';
+    progressMessage.style.display = 'none';
+    doneMessage.style.display = 'block';
+    // End the test run.
     return;
   }
   var test = tests[testIndex];
-  test.infoCell.textContent = 'Running test. Press Esc to abort.';
+  test.infoCell.textContent = '';
   test.resultCell.textContent = '⋯';
   setTimeout(function() { checkTimeout(test); }, 50000);
   if (test.test) {

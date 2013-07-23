@@ -16,20 +16,31 @@
 
 var keepServerAliveRequestsSent = 0;
 var keepServerAliveRequest = null;
-//document.write('<p id="serverStatus">Server status: <span id="statusSpan">Not connected</span></p>')
-//var statusSpan = document.getElementById('statusSpan');
+var serverStatusAlive = document.getElementById('serverStatusAlive');
+var serverStatusDead = document.getElementById('serverStatusDead');
 var running = false;
+var pageNavigated = false;
+window.onbeforeunload = function() {
+  pageNavigated = true;
+}
 function sendKeepServerAliveRequest() {
   keepServerAliveRequest = new XMLHttpRequest();
   keepServerAliveRequest.open('GET', '/keepServerAlive?randomNumber=' + Math.random(), true);
   keepServerAliveRequest.onreadystatechange = function() {
+    if (pageNavigated) return;
     if (!running && keepServerAliveRequest.readyState < 4 && keepServerAliveRequest.readyState > 2) {
       running = true;
-//      statusSpan.textContent = 'Running';
+      if (serverStatusAlive && serverStatusDead) {
+        serverStatusAlive.style.display = 'block';
+        serverStatusDead.style.display = 'none';
+      }
     }
     if (keepServerAliveRequest.readyState == 4) {
       running = false;
-//      statusSpan.textContent = 'Not running';
+      if (serverStatusAlive && serverStatusDead) {
+        serverStatusAlive.style.display = 'none';
+        serverStatusDead.style.display = 'block';
+      }
       window.setTimeout(sendKeepServerAliveRequest, 250);
     }
   };

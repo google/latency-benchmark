@@ -18,30 +18,33 @@ body {
   font-family: sans-serif;
   font-size: 14px;
   background-color: black;
-  color: white;
+  color: #CCC;
+}
+h1 {
+  font-variant: small-caps;
+  font-size: 30px;
 }
 a {
-  color: red;
+  color: #39c;
 }
 a:visited {
-  color: red;
+  color: #39c;
 }
 .testName {
   text-align: right;
-  width: 200px;
+  width: 300px;
 }
 .testResult {
-  margin: 10px;
-  padding: 10px;
-  width: 40px;
+  width: 35px;
   height: 40px;
 }
 .testResult div {
-  font-size: 140%;
+  font-size: 180%;
   text-align: center;
 }
 .passed {
   color: green;
+  visibility: hidden;
 }
 .failed {
   color: red;
@@ -49,8 +52,18 @@ a:visited {
 .testError {
   color: red;
 }
+.message {
+  margin: 30px;
+  height: 40px;
+  font-size: 26px;
+  text-align:center;
+  color: white;
+}
+#score {
+  font-size: 140%;
+}
 .testDescription {
-  color: #AFAFAF;
+  color: #777;
   font-size: 10px;
 }
 #onScreenCanvas {
@@ -62,7 +75,7 @@ a:visited {
   color: green;
 }
 #tests {
-  font-size: 20px;
+  font-size: 16px;
   table-layout: fixed;
   width: 100%;
 }
@@ -73,6 +86,7 @@ a:visited {
   width: 90%;
   height: 100%;
   padding-left: 5%;
-  padding-right: 5%;
+  padding-right: 10%;
+  padding-top: 10px;
   background-color: black;
 }

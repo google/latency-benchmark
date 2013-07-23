@@ -3,11 +3,27 @@
 <meta http-equiv="x-ua-compatible" content="IE=edge">
 <title>Web Latency Benchmark</title>
 <link rel="stylesheet" href="latency-benchmark.css">
+<style>
+body {
+  margin: 0px auto;
+  padding: 40px;
+  max-width: 500px;
+}
+.status {
+  display: none;
+}
+</style>
 
-<h2><a href="latency-benchmark.html">Run benchmark</a></h2>
+<h1>Web Latency Benchmark</h1>
 
-<p>This benchmark measures end-to-end latency: that is, the time between when an input event (such as a mouse click) is received by the browser, and when the browser responds by drawing to the screen. This is accomplished by programmatically sending input events to the browser, and polling for response via screenshot.
+<div class="status" id="serverStatusAlive">
+  <center><h2><a href="latency-benchmark.html">Click here to start the test</a></h2></center>
+  The benchmark server is running. Load the <a href="latency-benchmark.html">test page</a> in any browser on the local machine to begin the test.
+</div>
 
-<p>The benchmark should work with any browser that supports the canvas tag and typed arrays. Simply load the <a href="latency-benchmark.html">test page</a> in any browser on the local machine.
+<div class="status" id="serverStatusDead">
+  The benchmark server is no longer running. You must restart it before running the test.
+</div>
+
 
 <script src="keep-server-alive.js"></script>
