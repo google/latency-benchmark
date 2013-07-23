@@ -17,8 +17,10 @@
 #import <Cocoa/Cocoa.h>
 #import <dirent.h>
 #import <OpenGL/OpenGL.h>
+#include <mach/mach_time.h>
 #include "../latency-benchmark.h"
 #include "screenscraper.h"
+
 
 NSOpenGLContext *context;
 uint8_t pattern[pattern_bytes];
@@ -40,18 +42,19 @@ static CVReturn vsync_callback(
     exit(0);
   }
 
-  // Ideally we would wait until the vblank interval to perform the rendering
-  // and swap buffers, to avoid tearing while keeping latency to a minimum.
-  // Unfortunately I haven't found a way yet to tell when the vblank interval
-  // is. CVDisplayLink doesn't tell us; it calls us at some random time during
-  // the raster scan, which means rendering immediately can cause tearing. For
-  // now we'll accept tearing to keep latency low.
-
-  // Actually ideally, we would know the exact raster scan position, and would
-  // start rendering at a time such that we would finish exactly when the scan
-  // reaches the top pixel of our window. This could shave off a few
-  // milliseconds of latency. Unfortunately few systems provide the necessary
-  // timing information.
+  // Wait until 6ms before the next frame to actually render. This helps reduce
+  // latency.
+  // TODO: Set realtime thread scheduling policy to get more reliable wait
+  // times. This will allow waiting longer before starting to render without
+  // risking a missed frame.
+  // TODO: CVDisplayLink does adaptive framerate scheduling which is not latency
+  // focused. Safari gets better latency than CVDisplayLink. Move rendering to
+  // a separate thread to allow implementing more sophisticated frame scheduling
+  // and beat Safari's latency.
+  mach_timebase_info_data_t timebase;
+  mach_timebase_info(&timebase);
+  uint64_t ms_in_mach_time = 1000000 * timebase.denom / timebase.numer;
+  mach_wait_until(inOutputTime->hostTime - ms_in_mach_time * 6);
 
   // We must lock the OpenGL context since it's shared with the main thread.
   CGLLockContext((CGLContextObj)[context CGLContextObj]);
@@ -135,7 +138,7 @@ int main(int argc, char *argv[])
     [context setView:[window contentView]];
     // Draw the test pattern on the window before it is shown.
     [context makeCurrentContext];
-    draw_pattern_with_opengl(pattern, 0, 0, 0);
+    draw_pattern_with_opengl(pattern, scrolls, key_downs, esc_presses);
     [context flushBuffer];
     // Show the window.
     [window makeKeyAndOrderFront:window];
