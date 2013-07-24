@@ -3,7 +3,7 @@
 body {
   padding:50px;
   font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color:#777;
+  color:#555;
   font-weight:300;
 }
 
@@ -21,7 +21,9 @@ h1, h2, h3 {
 }
 
 h1 {
-  font-size:28px;
+  font-size:40px;
+  font-variant: small-caps;
+  font-weight: bold;
 }
 
 h2 {

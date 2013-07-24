@@ -1,37 +1,10 @@
-var goodScroll = document.getElementById('goodScroll');
-var badScroll = document.getElementById('badScroll');
-var goodDrag = document.getElementById('goodDrag');
-var badDrag = document.getElementById('badDrag');
+var goodJank = document.getElementById('goodJank');
+var badJank = document.getElementById('badJank');
+var goodLatency = document.getElementById('goodLatency');
+var badLatency = document.getElementById('badLatency');
 
-badScroll.onscroll = function() {
-  console.log('scrolled');
-}
-
-function setupScrolling(div) {
-  var content = '';
-  for (var i = 0; i < 20; i++) {
-    content += div.innerHTML;
-  }
-  div.innerHTML = content;
-}
-
-setupScrolling(goodScroll);
-setupScrolling(badScroll);
-
-var lastScroll = 0;
 var nextJank = 0;
-badScroll.onscroll = function(e) {
-  var now = Date.now();
-  if (now > nextJank) {
-    if (now - nextJank < 3000) {
-      var jankEnd = Date.now() + 333;
-      while (Date.now() < jankEnd);
-    }
-    nextJank = Date.now() + 500;
-  }
-}
-
-function setupDragging(div, latencyMs) {
+function setupDragging(div, latencyMs, jankMs) {
   div.style.overflow = 'hidden';
   div.style.cursor = 'move';
   div.firstElementChild.style.position = 'relative';
@@ -40,9 +13,25 @@ function setupDragging(div, latencyMs) {
   var dragX = 0;
   var dragY = 0;
   div.onmousedown = function(e) {
+    if (e.touches && e.touches[0]) {
+      e.clientX = e.touches[0].pageX;
+      e.clientY = e.touches[0].pageY;
+    }
     mouseX = e.clientX;
     mouseY = e.clientY;
     window.onmousemove = function(e) {
+      if (e.touches && e.touches[0]) {
+        e.clientX = e.touches[0].pageX;
+        e.clientY = e.touches[0].pageY;
+      }
+      var now = Date.now();
+      if (now > nextJank) {
+        if (now - nextJank < 1000) {
+          var jankEnd = Date.now() + jankMs;
+          while (Date.now() < jankEnd);
+        }
+        nextJank = Date.now() + 400;
+      }
       dragX += e.clientX - mouseX;
       dragY += e.clientY - mouseY;
       mouseX = e.clientX;
@@ -61,15 +50,22 @@ function setupDragging(div, latencyMs) {
       e.stopPropagation()
       return false;
     }
+    window.ontouchmove = window.onmousemove;
     window.onmouseup = function(e) {
       window.onmousemove = null;
+      window.ontouchmove = null;
       e.stopPropagation()
       return false;
     }
+    window.ontouchend = window.onmouseup;
     e.stopPropagation();
     return false;
   }
+  div.ontouchstart = div.onmousedown;
 }
 
-setupDragging(goodDrag, 0);
-setupDragging(badDrag, 150);
+setupDragging(goodLatency, 0, 0);
+setupDragging(badLatency, 10/60 * 1000, 0);
+
+setupDragging(goodJank, 0, 0);
+setupDragging(badJank, 0, 10/60 * 1000);
