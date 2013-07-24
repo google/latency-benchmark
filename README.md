@@ -4,17 +4,9 @@
 
 ## About the benchmark
 
-The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness by directly measuring *latency* and *jank*.
+The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness by directly measuring *latency* and *jank*. For a more complete description, visit the homepage at http://google.github.io/latency-benchmark.
 
-Other benchmarks might tell you that your browser can load a big page in 5 seconds, but what happens *during* those 5 seconds? Can you scroll, or is the page frozen until it finishes loading? Can you start typing immediately, or do you have to wait for everything else to finish? That's jank.
-
-When you're dragging a map around does it snap to your mouse cursor instantly, or does it feel like it's being dragged through molasses? When you're playing a game does your avatar jump right when you hit the button, or is there a slight delay at the worst possible time? That's latency.
-
-In an ideal browser, input latency would be 1 frame or less at 60 FPS, and nothing would ever cause jank. In today's browsers, input latency can range as high as 8-10 frames, and jank can last for hundreds of frames due to image loading, JavaScript execution, garbage collection, etc. The Web Latency Benchmark quantifies exactly how much latency and jank your browser has.
-
-## For developers
-
-### How the test works
+## How it works
 
 The Web Latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.
 
@@ -22,11 +14,11 @@ There are two main components: the latency-benchmark server (written in C/C++) a
 
 The native reference test is special because it requires extra support from the server. Using the native APIs of each platform, the server creates a special benchmark window that draws the same pattern as the test webpage, and responds to keyboard input in the same way. To ensure fairness when compared with the browser, this window is opened in a separate process and uses OpenGL to draw the pattern on the screen. The benchmark window opens as a popup window, only 1 pixel tall and without a border or title bar, so it's almost unnoticeable.
 
-### License and distribution
+## License and distribution
 
 The Web Latency Benchmark is licensed under the Apache License version 2.0. This is an open source project; it is not an official Google product.
 
-### Build prerequisites
+## Build prerequisites
 
 Python 2.x is required on all platforms for GYP, which generates the build files.
 
@@ -34,7 +26,7 @@ Python 2.x is required on all platforms for GYP, which generates the build files
 * Mac: XCode 4 is required.
 * Linux: Clang is required. The benchmark does not compile with GCC. The only other requirement should be X11 development headers and libraries, in the xorg-dev package on Debian/Ubuntu.
 
-### Build steps
+## Build steps
 
 First, you need to `git submodule init && git submodule update` to fetch the submodules in third_party. Then, you need to run `generate-project-files`, which will run GYP and generate platform-specific project files in build/.
 
@@ -44,7 +36,7 @@ First, you need to `git submodule init && git submodule update` to fetch the sub
 
 You shouldn't make any changes to the XCode or Visual Studio project files directly. Instead, you should edit `latency-benchmark.gyp` to reflect the changes you want, and re-run the `generate-project-files` script to update the project files with the changes. This ensures that the project files stay in sync across platforms.
 
-### TODO
+## TODO
 
 * Disable mouse and keyboard input during the test to avoid interference.
 * Hide the mouse cursor during the test.
