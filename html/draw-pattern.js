@@ -37,6 +37,7 @@ var canvasGL = document.createElement('canvas');
 setPrefixed('position', 'absolute', canvasGL.style);
 setPrefixed('top', '0px', canvasGL.style);
 setPrefixed('left', '0px', canvasGL.style);
+setPrefixed('zIndex', '1', canvasGL.style); // IE 11 doesn't display this element without this hack.
 canvasGL.width = 500;
 canvasGL.height = 1;
 var gl = null;
@@ -85,6 +86,7 @@ rightBlocker.style.top = '0px';
 rightBlocker.style.background = 'black';
 rightBlocker.style.width = '100%';
 rightBlocker.style.height = '100%';
+rightBlocker.style.zIndex = '1'; // IE 11 doesn't draw this element without this hack.
 bottomBlocker.style.position = 'absolute';
 bottomBlocker.style.left = '0px';
 bottomBlocker.style.top = '1px';
