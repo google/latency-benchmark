@@ -128,7 +128,7 @@ static void serve_file_from_memory_or_404(struct mg_connection *connection) {
     mg_printf(connection, "HTTP/1.1 200 OK\r\n"
               "Cache-Control: no-cache\r\n"
               "Content-Type: %s\r\n"
-              "Content-Length: %d\r\n"
+              "Content-Length: %lu\r\n"
               "Connection: close\r\n\r\n",
               mg_get_builtin_mime_type(file_path),
               file_size);
