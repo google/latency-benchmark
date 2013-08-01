@@ -1,10 +1,12 @@
 ![Screenshot](http://google.github.io/latency-benchmark/screenshot.png "Web Latency Benchmark")
 
-#### Download for Windows: [latency-benchmark.exe](http://google.github.io/latency-benchmark/latency-benchmark.exe)<br/>Download for Mac: [latency-benchmark-mac.zip](http://google.github.io/latency-benchmark/latency-benchmark-mac.zip)<br/>Download for Linux: [latency-benchmark-linux.zip](http://google.github.io/latency-benchmark/latency-benchmark-linux.zip)
-
 ## About the benchmark
 
-The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness by directly measuring *latency* and *jank*. For a more complete description, visit the homepage at http://google.github.io/latency-benchmark.
+The Web Latency Benchmark is a new kind of benchmark that tests your browser's responsiveness by directly measuring *latency* and *jank*. Visit the homepage at http://google.github.io/latency-benchmark for examples of the kinds of latency and jank that are measured.
+
+* Download for Windows: [latency-benchmark.exe](http://google.github.io/latency-benchmark/latency-benchmark.exe)
+* Download for Mac: [latency-benchmark-mac.zip](http://google.github.io/latency-benchmark/latency-benchmark-mac.zip)
+* Download for Linux: [latency-benchmark-linux.zip](http://google.github.io/latency-benchmark/latency-benchmark-linux.zip)
 
 ## How it works
 
