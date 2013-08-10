@@ -108,6 +108,7 @@
     },
     'conditions': [
       ['OS=="linux"', {
+        'ldflags': [ '-pthread' ],
         'link_settings': {
           'libraries' : [
           '-ldl',

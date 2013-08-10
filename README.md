@@ -26,7 +26,7 @@ Python 2.x is required on all platforms for GYP, which generates the build files
 
 * Windows: GYP is currently configured to generate project files for Visual Studio 2012 (Express works). 2010 might work too if you edit generate-project-files.bat to change the version. The Windows 8 SDK is required due to the use of DXGI 1.2. It can be installed on Windows 7 and Windows Vista.
 * Mac: XCode 4 is required.
-* Linux: Clang is required. The benchmark does not compile with GCC. The only other requirement should be X11 development headers and libraries, in the xorg-dev package on Debian/Ubuntu.
+* Linux: Clang is required. The benchmark does not compile with GCC. Other build dependencies are OpenGL and X11 development headers (Debian packages xorg-dev and libgl1-mesa-dev).
 
 ## Build steps
 
