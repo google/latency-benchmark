@@ -221,6 +221,39 @@ bool open_browser(const char *url) {
 }
 
 
+static bool extension_supported(const char *name) {
+  const char *extensions = glXQueryExtensionsString(display, DefaultScreen(display));
+  debug_log(extensions);
+  const char *found = strstr(extensions, name);
+  if (found) {
+    debug_log("found");
+    char end = found[strlen(name)];
+    if (end == '\0' || end == ' ') {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+typedef int (*glXSwapIntervalMESA_t)(int);
+static glXSwapIntervalMESA_t p_glXSwapIntervalMESA = NULL;
+typedef void (*glXSwapIntervalEXT_t)(Display *, GLXDrawable, int);
+static glXSwapIntervalEXT_t p_glXSwapIntervalEXT = NULL;
+
+
+static void initialize_gl_extensions() {
+  if (extension_supported("GLX_MESA_swap_control")) {
+    // Intel and AMD and MESA support this one, but not NVIDIA
+    p_glXSwapIntervalMESA = (glXSwapIntervalMESA_t)glXGetProcAddressARB((const GLubyte *)"glXSwapIntervalMESA");
+  }
+  if (extension_supported("GLX_EXT_swap_control")) {
+    // This one is supported by NVIDIA, but not Intel or AMD
+    p_glXSwapIntervalEXT = (glXSwapIntervalEXT_t)glXGetProcAddressARB((const GLubyte *)"glXSwapIntervalEXT");
+  }
+}
+
+
 static void native_reference_window_event_loop(uint8_t pattern[]) {
   // This function should only be called from a child process that isn't yet
   // connected to the X server.
@@ -259,19 +292,47 @@ static void native_reference_window_event_loop(uint8_t pattern[]) {
                                 xvi->visual, CWColormap | CWOverrideRedirect,
                                 &xswa);
   assert(window);
+
   XmbSetWMProperties(display, window, "Test window", NULL, NULL, 0, NULL, NULL,
                      NULL);
   XSelectInput(display, window, KeyPressMask | ButtonPressMask | ExposureMask);
 
-  // Draw the pattern on the window before showing it.
+  // Initialize GL and extensions.
   bool success = glXMakeCurrent(display, window, context);
   assert(success);
+  initialize_gl_extensions();
+
+  // Disable vsync to avoid blocking on swaps. Ideally we would sync to the
+  // display's refresh rate and render at the best possible time to achieve low
+  // latency and low CPU use while still avoiding tearing. That should be
+  // possible, but will be difficult to implement and will depend on driver/
+  // compositor support. For now we'll just render as fast as possible to
+  // achieve low latency.
+  bool disabled_vsync = false;
+  if (p_glXSwapIntervalMESA) {
+    int ret = p_glXSwapIntervalMESA(0);
+    if (ret) {
+      debug_log("glXSwapIntervalMESA failed %d", ret);
+      exit(1);
+    }
+    disabled_vsync = true;
+  }
+  if (!disabled_vsync && p_glXSwapIntervalEXT) {
+    p_glXSwapIntervalEXT(display, window, 0);
+    disabled_vsync = true;
+  }
+  if (!disabled_vsync) {
+    debug_log("No method of disabling vsync available.");
+    exit(1);
+  }
+
+  // Draw the pattern on the window before showing it.
   int scrolls = 0;
   int key_downs = 0;
   int esc_presses = 0;
   draw_pattern_with_opengl(pattern, scrolls, key_downs, esc_presses);
   glXSwapBuffers(display, window);
-
+ 
   // Show the window.
   XMapRaised(display, window);
   // Override-redirect windows don't automatically gain focus when mapped, so we
