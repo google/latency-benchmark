@@ -65,6 +65,14 @@ var addScore = function(value, good, bad, weight) {
   totalPossibleScore += weight;
 }
 
+var addEvents = function() {
+  document.addEventListener('keydown', prevent_default);
+  document.addEventListener('keypress', prevent_default);
+  document.addEventListener('keyup', prevent_default);
+  document.addEventListener('click', prevent_default);
+  document.addEventListener('contextmenu', prevent_default);
+};
+
 var checkName = function() {
   if (!this.toCheck)
     return error(this);
@@ -204,6 +212,7 @@ var inputLatency = function() {
     var frames = response.keyDownLatencyMs/(1000/60);
     addScore(frames, 0.5, 3, 1);
     pass(test, frames.toFixed(1) + ' frames latency');
+    addEvents();
   });
 };
 

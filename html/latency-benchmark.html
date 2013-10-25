@@ -15,3 +15,11 @@
 <script src="compatibility.js"></script>
 <script src="draw-pattern.js"></script>
 <script src="latency-benchmark.js"></script>
+<script>
+  function prevent_default(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return false;
+  }
+</script>
