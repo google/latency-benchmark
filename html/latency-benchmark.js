@@ -65,6 +65,27 @@ var addScore = function(value, good, bad, weight) {
   totalPossibleScore += weight;
 }
 
+var preventContextMenuAndSelection = function(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  return false;
+}
+
+
+var addEvents = function() {
+  document.addEventListener('keydown', preventContextMenuAndSelection);
+  document.addEventListener('keypress', preventContextMenuAndSelection);
+  document.addEventListener('keyup', preventContextMenuAndSelection);
+  document.addEventListener('click', preventContextMenuAndSelection);
+  document.addEventListener('contextmenu', preventContextMenuAndSelection);
+};
+
+var removeEvents = function() {
+  document.removeEventListener('click', preventContextMenuAndSelection);
+  document.removeEventListener('contextmenu', preventContextMenuAndSelection);
+}
+
 var checkName = function() {
   if (!this.toCheck)
     return error(this);
@@ -204,6 +225,7 @@ var inputLatency = function() {
     var frames = response.keyDownLatencyMs/(1000/60);
     addScore(frames, 0.5, 3, 1);
     pass(test, frames.toFixed(1) + ' frames latency');
+    addEvents();
   });
 };
 
@@ -502,6 +524,7 @@ var runNextTest = function(previousTest) {
     score.style.color = 'hsl(' + (Math.pow(scoreRatio, 3) * 120) + ', 100%, 50%)';
     progressMessage.style.display = 'none';
     doneMessage.style.display = 'block';
+    removeEvents();
     // End the test run.
     return;
   }
