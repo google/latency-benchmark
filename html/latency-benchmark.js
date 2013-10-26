@@ -65,7 +65,7 @@ var addScore = function(value, good, bad, weight) {
   totalPossibleScore += weight;
 }
 
-var prevent_default = function(e) {
+var preventContextMenuAndSelection = function(e) {
   e.stopPropagation();
   e.preventDefault();
   e.stopImmediatePropagation();
@@ -74,12 +74,17 @@ var prevent_default = function(e) {
 
 
 var addEvents = function() {
-  document.addEventListener('keydown', prevent_default);
-  document.addEventListener('keypress', prevent_default);
-  document.addEventListener('keyup', prevent_default);
-  document.addEventListener('click', prevent_default);
-  document.addEventListener('contextmenu', prevent_default);
+  document.addEventListener('keydown', preventContextMenuAndSelection);
+  document.addEventListener('keypress', preventContextMenuAndSelection);
+  document.addEventListener('keyup', preventContextMenuAndSelection);
+  document.addEventListener('click', preventContextMenuAndSelection);
+  document.addEventListener('contextmenu', preventContextMenuAndSelection);
 };
+
+var removeEvents = function() {
+  document.removeEventListener('click', preventContextMenuAndSelection);
+  document.removeEventListener('contextmenu', preventContextMenuAndSelection);
+}
 
 var checkName = function() {
   if (!this.toCheck)
@@ -519,6 +524,7 @@ var runNextTest = function(previousTest) {
     score.style.color = 'hsl(' + (Math.pow(scoreRatio, 3) * 120) + ', 100%, 50%)';
     progressMessage.style.display = 'none';
     doneMessage.style.display = 'block';
+    removeEvents();
     // End the test run.
     return;
   }
