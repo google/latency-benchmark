@@ -419,7 +419,6 @@ bool measure_latency(
         measurement.scroll_position, screenshot_time, previous_screenshot_time);
 
     if (measurement.test_mode == TEST_MODE_JAVASCRIPT_LATENCY) {
-      assert(measurement.test_mode != TEST_MODE_NATIVE_REFERENCE);
       if (key_down_events.measurements >= latency_measurements_to_take) {
         break;
       }

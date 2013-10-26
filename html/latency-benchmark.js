@@ -65,6 +65,14 @@ var addScore = function(value, good, bad, weight) {
   totalPossibleScore += weight;
 }
 
+var prevent_default = function(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  return false;
+}
+
+
 var addEvents = function() {
   document.addEventListener('keydown', prevent_default);
   document.addEventListener('keypress', prevent_default);

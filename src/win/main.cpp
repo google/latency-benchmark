@@ -73,10 +73,10 @@ void message_loop(HANDLE parent_process) {
     assert(a);
   }
   HWND native_reference_window = NULL;
-  native_reference_window = CreateWindowEx(WS_EX_TOPMOST, // No taskbar button
+  native_reference_window = CreateWindowEx(WS_EX_TOPMOST, // Top most window and No taskbar button
                                 window_class_name,
                                 "Web Latency Benchmark test window",
-                                WS_DISABLED | WS_POPUP, // Borderless
+                                WS_DISABLED | WS_POPUP, // Borderless and user-inputs Disabled
                                 200, 200, pattern_pixels, 1,
                                 NULL, NULL, window_class.hInstance, NULL);
   assert(native_reference_window);
