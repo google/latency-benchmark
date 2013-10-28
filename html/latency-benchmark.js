@@ -14,6 +14,25 @@
  * limitations under the License.
  */
 
+var cancelEvent = function(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  return false;
+}
+
+var disableInput = function() {
+  document.addEventListener('click', cancelEvent);
+  document.addEventListener('contextmenu', cancelEvent);
+};
+
+disableInput();
+
+var reenableInput = function() {
+  document.removeEventListener('click', cancelEvent);
+  document.removeEventListener('contextmenu', cancelEvent);
+}
+
 var delayedTests = [];
 
 var progressMessage = document.getElementById('progressMessage');
@@ -43,6 +62,7 @@ var fail = function(test, text) {
     test.infoCell.textContent = text || '';
     testMode = TEST_MODES.ABORT;
     progressMessage.textContent = 'Test failed.';
+    reenableInput();
   }
 };
 var error = function(test, text) {
@@ -53,6 +73,7 @@ var error = function(test, text) {
     test.infoCell.textContent = text || 'test error';
     testMode = TEST_MODES.ABORT;
     progressMessage.textContent = 'Test failed.';
+    reenableInput();
   }
 };
 var totalScore = 0;
@@ -63,29 +84,6 @@ var addScore = function(value, good, bad, weight) {
   if (score < 0) score = 0;
   totalScore += score * weight;
   totalPossibleScore += weight;
-}
-
-var cancelEvent = function(e) {
-  e.stopPropagation();
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  return false;
-}
-
-var disableInput = function() {
-  document.addEventListener('keydown', cancelEvent);
-  document.addEventListener('keypress', cancelEvent);
-  document.addEventListener('keyup', cancelEvent);
-  document.addEventListener('click', cancelEvent);
-  document.addEventListener('contextmenu', cancelEvent);
-};
-
-var reenableInput = function() {
-  document.removeEventListener('keydown', cancelEvent);
-  document.removeEventListener('keypress', cancelEvent);
-  document.removeEventListener('keyup', cancelEvent);
-  document.removeEventListener('click', cancelEvent);
-  document.removeEventListener('contextmenu', cancelEvent);
 }
 
 var checkName = function() {
@@ -227,7 +225,6 @@ var inputLatency = function() {
     var frames = response.keyDownLatencyMs/(1000/60);
     addScore(frames, 0.5, 3, 1);
     pass(test, frames.toFixed(1) + ' frames latency');
-    disableInput();
   });
 };
 
