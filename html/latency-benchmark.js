@@ -65,25 +65,27 @@ var addScore = function(value, good, bad, weight) {
   totalPossibleScore += weight;
 }
 
-var preventContextMenuAndSelection = function(e) {
+var cancelEvent = function(e) {
   e.stopPropagation();
   e.preventDefault();
   e.stopImmediatePropagation();
   return false;
 }
 
-
-var addEvents = function() {
-  document.addEventListener('keydown', preventContextMenuAndSelection);
-  document.addEventListener('keypress', preventContextMenuAndSelection);
-  document.addEventListener('keyup', preventContextMenuAndSelection);
-  document.addEventListener('click', preventContextMenuAndSelection);
-  document.addEventListener('contextmenu', preventContextMenuAndSelection);
+var disableInput = function() {
+  document.addEventListener('keydown', cancelEvent);
+  document.addEventListener('keypress', cancelEvent);
+  document.addEventListener('keyup', cancelEvent);
+  document.addEventListener('click', cancelEvent);
+  document.addEventListener('contextmenu', cancelEvent);
 };
 
-var removeEvents = function() {
-  document.removeEventListener('click', preventContextMenuAndSelection);
-  document.removeEventListener('contextmenu', preventContextMenuAndSelection);
+var reenableInput = function() {
+  document.removeEventListener('keydown', cancelEvent);
+  document.removeEventListener('keypress', cancelEvent);
+  document.removeEventListener('keyup', cancelEvent);
+  document.removeEventListener('click', cancelEvent);
+  document.removeEventListener('contextmenu', cancelEvent);
 }
 
 var checkName = function() {
@@ -225,7 +227,7 @@ var inputLatency = function() {
     var frames = response.keyDownLatencyMs/(1000/60);
     addScore(frames, 0.5, 3, 1);
     pass(test, frames.toFixed(1) + ' frames latency');
-    addEvents();
+    disableInput();
   });
 };
 
@@ -524,7 +526,7 @@ var runNextTest = function(previousTest) {
     score.style.color = 'hsl(' + (Math.pow(scoreRatio, 3) * 120) + ', 100%, 50%)';
     progressMessage.style.display = 'none';
     doneMessage.style.display = 'block';
-    removeEvents();
+    reenableInput();
     // End the test run.
     return;
   }
