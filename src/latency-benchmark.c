@@ -308,7 +308,7 @@ static void init_statistic(char *name, statistic *stat, int value,
 }
 
 
-static const int64_t test_timeout_ms = 40000;
+static const int64_t test_timeout_ms = 80000;
 static const int64_t event_response_timeout_ms = 4000;
 static const int latency_measurements_to_take = 50;
 
@@ -336,7 +336,7 @@ bool measure_latency(
   bool found_pattern = find_pattern(magic_pattern, screenshot, &x, &y);
   free_screenshot(screenshot);
   if (!found_pattern) {
-    *error = "Failed to find test pattern on screen.";
+    *error = "Failed to find test pattern on screen. Ensure that your browser's zoom level is set to \"100%\", and the top-left corner of the window is visible. If you have multiple displays, try moving the browser window to the main display.";
     return false;
   }
   uint8_t full_pattern[pattern_bytes];
@@ -456,6 +456,7 @@ bool measure_latency(
           return false;
         }
         if (scroll_updated) {
+          debug_log("scroll measurements: %d", scroll_stats.measurements);
           // We saw the start of a scroll. Wait for the scroll animation to
           // finish before continuing. We assume the animation is finished if
           // it's been 100 milliseconds since we last saw the scroll position

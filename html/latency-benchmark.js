@@ -530,7 +530,7 @@ var runNextTest = function(previousTest) {
   var test = tests[testIndex];
   test.infoCell.textContent = '';
   test.resultCell.textContent = '⋯';
-  setTimeout(function() { checkTimeout(test); }, 50000);
+  setTimeout(function() { checkTimeout(test); }, 80000);
   if (test.test) {
     setTimeout(function() {
       try {
