@@ -40,6 +40,7 @@ You shouldn't make any changes to the XCode or Visual Studio project files direc
 
 ## TODO
 
+* Fix IE11 in high DPI mode (test pattern scrolls off screen).
 * Disable mouse and keyboard input during the test to avoid interference.
 * Hide the mouse cursor during the test.
 * Find a way to share constants like the test timeout between JS and C.

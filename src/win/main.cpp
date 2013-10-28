@@ -182,7 +182,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     HDC desktop = GetDC(NULL);
     assert(desktop);
     if (GetDeviceCaps(desktop, LOGPIXELSX) != 96) {
-      MessageBox(NULL, "Warning: DPI scaling is enabled. Non-DPI-aware browsers will not be able to run the test.",
+      MessageBox(NULL, "Warning: The test will fail in non-DPI-aware browsers. To fix this, use Control Panel to set your DPI scaling factor to \"100%\" or \"Smaller\".",
                  "Warning", MB_ICONWARNING | MB_OK);
     }
     ReleaseDC(NULL, desktop);
