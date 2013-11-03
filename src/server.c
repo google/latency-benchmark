@@ -24,6 +24,7 @@
 #include "screenscraper.h"
 #include "latency-benchmark.h"
 #include "../third_party/mongoose/mongoose.h"
+#include "oculus.h"
 
 // Serve files from the ./html directory.
 static const char * const document_root = "html";
@@ -186,6 +187,24 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
     open_native_reference_window(test_pattern);
     report_latency(connection, test_pattern);
     close_native_reference_window();
+    return 1;
+  } else if (strcmp(request_info->uri, "/oculusLatencyTester") == 0) {
+    const char *result_or_error = "Unknown error";
+    if (run_hardware_latency_test(&result_or_error)) {
+      debug_log("hardware latency test succeeded");
+      mg_printf(connection, "HTTP/1.1 200 OK\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Content-Type: text/plain\r\n\r\n"
+                "%s", result_or_error);
+    } else {
+      debug_log("hardware latency test failed");
+      mg_printf(connection, "HTTP/1.1 500 Internal Server Error\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Cache-Control: no-cache\r\n"
+                "Content-Type: text/plain\r\n\r\n"
+                "%s", result_or_error);
+    }
     return 1;
   } else {
 #ifdef NDEBUG

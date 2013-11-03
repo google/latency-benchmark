@@ -105,15 +105,19 @@ void free_screenshot(screenshot *shot) {
   free(shot);
 }
 
-bool send_keystroke_z() {
-  CGEventRef down = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)6, true);
-  CGEventRef up = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)6, false);
+bool send_keystroke(int keyCode) {
+  CGEventRef down = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)keyCode, true);
+  CGEventRef up = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)keyCode, false);
   CGEventPost(kCGHIDEventTap, down);
   CGEventPost(kCGHIDEventTap, up);
   CFRelease(down);
   CFRelease(up);
   return true;
 }
+
+bool send_keystroke_z() { send_keystroke(6); }
+bool send_keystroke_b() { send_keystroke(11); }
+bool send_keystroke_w() { send_keystroke(13); }
 
 bool send_scroll_down(x, y) {
   CGFloat devicePixelRatio =

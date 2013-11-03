@@ -60,6 +60,9 @@ void free_screenshot(screenshot *screenshot);
 // Sends key down and key up events to the foreground window for the 'z' key.
 // Returns true on success, false on failure.
 bool send_keystroke_z();
+bool send_keystroke_b();
+bool send_keystroke_w();
+
 // Warps the mouse to the given point and sends a mousewheel scroll down event.
 // Returns true on success, false on failure.
 bool send_scroll_down(int x, int y);
