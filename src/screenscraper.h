@@ -30,7 +30,9 @@
 #ifdef _WINDOWS
 // MSVC doesn't support C99, so we compile all the C code as C++ instead.
 #include <limits>
+#ifndef INFINITY
 #define INFINITY (std::numeric_limits<double>::infinity())
+#endif
 #include <intrin.h>
 #define __sync_fetch_and_add _InterlockedExchangeAdd
 // Ugh, MSVC doesn't have a sensible snprintf. sprintf_s is close, as long as
@@ -57,11 +59,12 @@ screenshot *take_screenshot(uint32_t x, uint32_t y, uint32_t width,
                             uint32_t height);
 void free_screenshot(screenshot *screenshot);
 
-// Sends key down and key up events to the foreground window for the 'z' key.
+// Sends key down and key up events to the foreground window for the named key.
 // Returns true on success, false on failure.
-bool send_keystroke_z();
 bool send_keystroke_b();
+bool send_keystroke_t();
 bool send_keystroke_w();
+bool send_keystroke_z();
 
 // Warps the mouse to the given point and sends a mousewheel scroll down event.
 // Returns true on success, false on failure.

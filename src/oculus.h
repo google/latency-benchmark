@@ -17,6 +17,14 @@
 #ifndef WLB_OCULUS_H_
 #define WLB_OCULUS_H_
 
-bool run_hardware_latency_test(const char **result_or_error);
+#ifdef __cplusplus
+#define EXTERN_C extern "C"
+#else
+#define EXTERN_C
+#endif
+
+EXTERN_C void init_oculus();
+EXTERN_C bool latency_tester_available();
+EXTERN_C bool run_hardware_latency_test(const char **result_or_error);
 
 #endif // WLB_OCULUS_H_

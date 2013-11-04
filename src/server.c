@@ -167,13 +167,17 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
               "Content-Type: application/octet-stream\r\n"
               "Cache-Control: no-cache\r\n"
               "Transfer-Encoding: chunked\r\n\r\n");
-    const int chunk_size = 7;
-    char *chunk = "2\r\nZ\n\r\n";
+    const int chunk_size = 6;
+    char *chunk0 = "1\r\n0\r\n";
+    char *chunk1 = "1\r\n1\r\n";
+    char *chunk = latency_tester_available() ? chunk1 : chunk0;
     const int warmup_chunks = 2048;
     for (int i = 0; i < warmup_chunks; i++) {
       mg_write(connection, chunk, chunk_size);
     }
-    while(mg_write(connection, chunk, chunk_size)) {
+    while(true) {
+      chunk = latency_tester_available() ? chunk1 : chunk0;
+      if (!mg_write(connection, chunk, chunk_size)) break;
       usleep(1000 * 1000);
     }
     __sync_fetch_and_add(&keep_alives, -1);
@@ -225,6 +229,7 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
 void run_server() {
   assert(mongoose == NULL);
   srand((unsigned int)time(NULL));
+  init_oculus();
   const char *options[] = {
     "listening_ports", "5578",
     "document_root", document_root,

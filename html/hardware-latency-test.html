@@ -4,21 +4,27 @@
 <title>Web Latency Benchmark</title>
 <link rel="stylesheet" href="latency-benchmark.css">
 
-<h1>Web Latency Test: End-To-End</h1>
-This test requires specialized hardware: an <a href="https://www.oculusvr.com/order/latency-tester/">Oculus Latency Tester</a> device. Point it at the square below and press 'T' to start the test.
+<h1>Web Latency Benchmark: Hardware test</h1>
+<canvas id="testCanvas" width="400" height="400" style="border: 10px solid gray; margin-right: 20px; float: left"></canvas>
+<a href="https://www.oculusvr.com/order/latency-tester/">Oculus Latency Tester</a> detected! Point it at the square on the left and press the test button, or 'T' on the keyboard, to run the test.
 <p>
-<canvas id="testCanvas" width="300" height="300" style="border: 10px solid gray"></canvas>
-
+<label style="visibility:hidden"><input type="checkbox" id="cpuLoad"/> add CPU load</label><br/>
 <p>
-<label><input type="checkbox" id="cpuLoad"/> add CPU load</label><br/>
-
-<div id="results">
+<div id="averageMs" style="font-size: 30px; color: white"></div>
+<div id="results"></div>
 
 <script src="keep-server-alive.js"></script>
 <script>
+var averageMsDiv = document.getElementById('averageMs');
+var resultsDiv = document.getElementById('results');
 var cpuLoad = document.getElementById('cpuLoad');
 var testCanvas = document.getElementById('testCanvas');
 var gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+if (!gl) {
+  resultsDiv.textContent = 'Failed to initialize WebGL. The test will not work.'
+  resultsDiv.style.color = 'red';
+  resultsDiv.style.fontSize = '30px';
+}
 var color = [0, 0, 0];
 
 window.onkeydown = function(e) {
@@ -47,18 +53,32 @@ function draw() {
 }
 draw();
 
+var results = [];
+var testRunning = false;
 function startTest() {
+  if (testRunning) return;
+  testRunning = true;
   var request = new XMLHttpRequest();
   request.open('GET', 'http://localhost:5578/oculusLatencyTester', true);
   request.onreadystatechange = function() {
     if (request.readyState == 4) {
+      var p = document.createElement('p');
+      p.textContent = request.response;
+      resultsDiv.appendChild(p);
       if (request.status == 200) {
-        alert(request.response);
-      } else if (request.status == 500) {
-        alert(request.response);
-      } else {
-        alert('unknown');
+        var result = request.response.match(/^RESULT=([0-9\.]+)/);
+        if (result) {
+          var ms = parseFloat(result[1]);
+          results.push(ms);
+          var averageMs = 0;
+          for (var i = 0; i < results.length; i++) {
+            averageMs += results[i];
+          }
+          averageMs /= results.length;
+          averageMsDiv.textContent = 'Average: ' + averageMs.toFixed(1) + ' ms';
+        }
       }
+      testRunning = false;
     }
   };
   request.send();
