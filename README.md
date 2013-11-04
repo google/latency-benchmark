@@ -8,6 +8,10 @@ The Web Latency Benchmark is a new kind of benchmark that tests your browser's r
 * Download for Mac: [latency-benchmark-mac.zip](http://google.github.io/latency-benchmark/latency-benchmark-mac.zip)
 * Download for Linux: [latency-benchmark-linux.zip](http://google.github.io/latency-benchmark/latency-benchmark-linux.zip)
 
+## New: Oculus Latency Tester support
+
+The [Oculus Latency Tester](https://www.oculusvr.com/order/latency-tester/) is a hardware device with a light sensor that can measure end-to-end latency from USB input to pixels changing on the screen. This kind of hardware-based measurement accounts for all possible sources of latency. It's the most complete and accurate measurement possible, and it's now supported by the Web Latency Benchmark. Just plug it in and you'll see a special test page.
+
 ## How it works
 
 The Web Latency Benchmark works by programmatically sending input events to a browser window, and using screenshot APIs to detect when the browser has finished drawing its response.
@@ -40,6 +44,7 @@ You shouldn't make any changes to the XCode or Visual Studio project files direc
 
 ## TODO
 
+* Support jank measurement with the Oculus Latency Tester, in addition to latency measurement.
 * Fix IE11 in high DPI mode (test pattern scrolls off screen).
 * Disable mouse and keyboard input during the test to avoid interference.
 * Hide the mouse cursor during the test.
