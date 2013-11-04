@@ -59,7 +59,7 @@ function startTest() {
   if (testRunning) return;
   testRunning = true;
   var request = new XMLHttpRequest();
-  request.open('GET', 'http://localhost:5578/oculusLatencyTester', true);
+  request.open('GET', 'http://localhost:5578/oculusLatencyTester?defeatCache=' + Math.random(), true);
   request.onreadystatechange = function() {
     if (request.readyState == 4) {
       var p = document.createElement('p');
