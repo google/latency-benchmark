@@ -8,7 +8,7 @@
 <canvas id="testCanvas" width="400" height="400" style="border: 10px solid gray; margin-right: 20px; float: left"></canvas>
 <a href="https://www.oculusvr.com/order/latency-tester/">Oculus Latency Tester</a> detected! Point it at the square on the left and press the test button, or 'T' on the keyboard, to run the test.
 <p>
-<label><input type="checkbox" id="cpuLoad"/> add CPU load</label><br/>
+<label style="visibility:hidden"><input type="checkbox" id="cpuLoad"/> add CPU load</label><br/>
 <p>
 <div id="averageMs" style="font-size: 30px; color: white"></div>
 <div id="results"></div>
@@ -20,6 +20,11 @@ var resultsDiv = document.getElementById('results');
 var cpuLoad = document.getElementById('cpuLoad');
 var testCanvas = document.getElementById('testCanvas');
 var gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+if (!gl) {
+  resultsDiv.textContent = 'Failed to initialize WebGL. The test will not work.'
+  resultsDiv.style.color = 'red';
+  resultsDiv.style.fontSize = '30px';
+}
 var color = [0, 0, 0];
 
 window.onkeydown = function(e) {
@@ -58,7 +63,7 @@ function startTest() {
   request.onreadystatechange = function() {
     if (request.readyState == 4) {
       var p = document.createElement('p');
-      p.innerText = request.response;
+      p.textContent = request.response;
       resultsDiv.appendChild(p);
       if (request.status == 200) {
         var result = request.response.match(/^RESULT=([0-9\.]+)/);
@@ -70,7 +75,7 @@ function startTest() {
             averageMs += results[i];
           }
           averageMs /= results.length;
-          averageMsDiv.innerText = 'Average: ' + averageMs.toFixed(1) + ' ms';
+          averageMsDiv.textContent = 'Average: ' + averageMs.toFixed(1) + ' ms';
         }
       }
       testRunning = false;

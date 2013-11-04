@@ -245,6 +245,8 @@
           '-lX11',
           '-lXtst',
           '-lGL',
+          '-ludev',
+          '-lXinerama',
           ],
         },
       }],

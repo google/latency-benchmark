@@ -16,7 +16,7 @@ static OVR::LatencyTestDevice *global_latency_device = NULL;
 
 class Handler : public OVR::MessageHandler {
   virtual void OnMessage(const OVR::Message &message) {
-    if (message.Type == OVR::MessageType::Message_DeviceRemoved) {
+    if (message.Type == OVR::Message_DeviceRemoved) {
       OVR::LatencyTestDevice *local_device = global_latency_device;
       global_latency_device = NULL;
       // Ugh, this isn't guaranteed to be thread safe but it's easier than
@@ -25,7 +25,7 @@ class Handler : public OVR::MessageHandler {
       usleep(1000);
       local_device->Release();
     }
-    if (message.Type == OVR::MessageType::Message_LatencyTestButton) {
+    if (message.Type == OVR::Message_LatencyTestButton) {
       send_keystroke_t();
     }
   }

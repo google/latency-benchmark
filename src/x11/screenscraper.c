@@ -103,7 +103,7 @@ void free_screenshot(screenshot *shot) {
 }
 
 
-bool send_keystroke_z() {
+static bool send_keystroke(int keysym) {
   if (!display) {
     display = XOpenDisplay(NULL);
     if (!display) {
@@ -122,7 +122,7 @@ bool send_keystroke_z() {
   event.subwindow = None;
   event.time = CurrentTime;
   event.same_screen = True;
-  event.keycode = XKeysymToKeycode(display, XK_Z);
+  event.keycode = XKeysymToKeycode(display, keysym);
   event.type = KeyPress;
   XSendEvent(display, focused, True, KeyPressMask, (XEvent*) &event);
   event.type = KeyRelease;
@@ -130,6 +130,12 @@ bool send_keystroke_z() {
   XSync(display, False);
   return true;
 }
+
+
+bool send_keystroke_b() { return send_keystroke(XK_B); }
+bool send_keystroke_t() { return send_keystroke(XK_T); }
+bool send_keystroke_w() { return send_keystroke(XK_W); }
+bool send_keystroke_z() { return send_keystroke(XK_Z); }
 
 
 bool send_scroll_down(int x, int y) {
