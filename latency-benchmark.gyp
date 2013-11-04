@@ -67,6 +67,14 @@
               '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
             ],
           },
+          'mac_bundle': 1,
+          'mac_bundle_resources': [
+            'src/mac/InfoPlist.strings',
+            'src/mac/MainMenu.xib',
+          ],
+          'xcode_settings': {
+            'INFOPLIST_FILE': 'src/mac/latency-benchmark-Info.plist',
+          },
         }],
       ],
       'msvs_settings': {

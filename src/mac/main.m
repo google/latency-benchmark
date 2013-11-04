@@ -21,6 +21,19 @@
 #include "../latency-benchmark.h"
 #include "screenscraper.h"
 
+void run_server(void);
+@interface AppDelegate : NSObject <NSApplicationDelegate>
+@end
+@implementation AppDelegate
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    run_server();
+    exit(0);
+  });
+}
+@end
+
 
 NSOpenGLContext *context;
 uint8_t pattern[pattern_bytes];
@@ -74,20 +87,18 @@ static CVReturn vsync_callback(
 - (BOOL)canBecomeKeyWindow { return YES; }
 @end
 
-
-void run_server(void);
-
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
   // SIGPIPE will terminate the process if we write to a closed socket, unless
   // we disable it like so. Note that GDB/LLDB will stop on SIGPIPE anyway
   // unless you configure them not to.
   // http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals
   signal(SIGPIPE, SIG_IGN);
-  // If we have no arguments, run the test server.
-  if (argc <= 1) {
-    run_server();
-    return 0;
+  // If we have no arguments, or an argument that starts with '-' run the test
+  // server. (XCode passes -NSDocumentRevisionsDebugMode as an argument during
+  // debugging.)
+  if (argc <= 1 || argv[1][0] == '-') {
+    return NSApplicationMain(argc, argv);
   }
   // If we have arguments, assume we are a child process of a server, and our
   // job is to create a reference test window.
