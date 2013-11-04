@@ -73,6 +73,12 @@
         'VCCLCompilerTool': {
           'CompileAs': 2, # Compile C as C++, since msvs doesn't support C99
         },
+        'VCLinkerTool': {
+          'AdditionalDependencies': [
+            'winmm.lib',
+            'setupapi.lib',
+          ],
+        },
       },
     },
     {
@@ -156,6 +162,10 @@
         'third_party/LibOVR/Src/Util/Util_Render_Stereo.cpp',
         'third_party/LibOVR/Src/Util/Util_Render_Stereo.h',
       ],
+      'msvs_configuration_attributes': {
+        # Oculus code assumes Unicode mode.
+        'CharacterSet': '1',
+      },
       'conditions': [
         ['OS=="linux"', {
           'sources': [

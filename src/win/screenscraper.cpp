@@ -307,18 +307,23 @@ void free_screenshot(screenshot *shot) {
 }
 
 
-// Sends a keydown+keyup event for the 'Z' key to the foreground window.
-bool send_keystroke_z() {
+// Sends a keydown+keyup event for the given key to the foreground window.
+static bool send_keystroke(WORD key_code) {
   INPUT input[2];
   memset(input, 0, sizeof(INPUT) * 2);
   input[0].type = INPUT_KEYBOARD;
-  input[0].ki.wVk = 0x5A; // 'Z' key
+  input[0].ki.wVk = key_code;
   input[1].type = INPUT_KEYBOARD;
-  input[1].ki.wVk = 0x5A; // 'Z' key
+  input[1].ki.wVk = key_code;
   input[1].ki.dwFlags = KEYEVENTF_KEYUP;
   SendInput(2, input, sizeof(INPUT));
   return true;
 }
+
+bool send_keystroke_b() { return send_keystroke(0x42); }
+bool send_keystroke_t() { return send_keystroke(0x54); }
+bool send_keystroke_w() { return send_keystroke(0x57); }
+bool send_keystroke_z() { return send_keystroke(0x5A); }
 
 bool send_scroll_down(int x, int y) {
   SetCursorPos(x, y);

@@ -44,6 +44,19 @@ function sendKeepServerAliveRequest() {
       window.setTimeout(sendKeepServerAliveRequest, 250);
     }
   };
+  keepServerAliveRequest.onprogress = function() {
+    if (keepServerAliveRequest.readyState == 3) {
+      var response = keepServerAliveRequest.response;
+      var last = response.slice(response.length - 1);
+      var latencyTester = last == '1';
+      if (latencyTester && !/hardware-latency-test/.test(window.location.pathname)) {
+        window.location.href = '/hardware-latency-test.html';
+      }
+      if (!latencyTester && /hardware-latency-test/.test(window.location.pathname)) {
+        window.location.href = '/';
+      }
+    }
+  }
   keepServerAliveRequest.send();
 }
 sendKeepServerAliveRequest();
