@@ -224,7 +224,7 @@ var inputLatency = function() {
   requestServerTest(test, function() {}, function(response) {
     var frames = response.keyDownLatencyMs/(1000/60);
     addScore(frames, 0.5, 3, 1);
-    pass(test, frames.toFixed(1) + ' frames latency');
+    pass(test, frames.toFixed(1) + ' frames latency (lower is better)');
   });
 };
 
@@ -234,7 +234,7 @@ var scrollLatency = function() {
   requestServerTest(test, function() {}, function(response) {
     var frames = response.scrollLatencyMs/(1000/60);
     addScore(frames, 0.5, 3, 1);
-    pass(test, frames.toFixed(1) + ' frames latency');
+    pass(test, frames.toFixed(1) + ' frames latency (lower is better)');
   });
 };
 
@@ -283,7 +283,7 @@ var testJank = function() {
         break;
       }
     }
-    pass(test, reports.join(', '));
+    pass(test, reports.join(', ') + ' (lower is better)');
   });
 };
 
@@ -292,7 +292,7 @@ var testNative = function() {
   var test = this;
   testMode = TEST_MODES.NATIVE_REFERENCE;
   requestServerTest(test, function() {}, function(response) {
-    pass(test, ((response.keyDownLatencyMs/(1000/60)).toFixed(1)) + ' frames latency, ' + (response.maxCssPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank');
+    pass(test, ((response.keyDownLatencyMs/(1000/60)).toFixed(1)) + ' frames latency, ' + (response.maxCssPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank (lower is better)');
   });
 };
 
