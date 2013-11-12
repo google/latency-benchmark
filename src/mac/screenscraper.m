@@ -115,10 +115,10 @@ bool send_keystroke(int keyCode) {
   return true;
 }
 
-bool send_keystroke_b() { send_keystroke(11); }
-bool send_keystroke_t() { send_keystroke(17); }
-bool send_keystroke_w() { send_keystroke(13); }
-bool send_keystroke_z() { send_keystroke(6); }
+bool send_keystroke_b() { return send_keystroke(11); }
+bool send_keystroke_t() { return send_keystroke(17); }
+bool send_keystroke_w() { return send_keystroke(13); }
+bool send_keystroke_z() { return send_keystroke(6); }
 
 bool send_scroll_down(x, y) {
   CGFloat devicePixelRatio =
