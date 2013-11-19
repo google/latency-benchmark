@@ -44,6 +44,10 @@ You shouldn't make any changes to the XCode or Visual Studio project files direc
 
 ## TODO
 
+* Support for more operating systems:
+    * Android
+    * iOS
+    * Chrome OS
 * Support jank measurement with the Oculus Latency Tester, in addition to latency measurement.
 * Fix IE11 in high DPI mode (test pattern scrolls off screen).
 * Disable mouse and keyboard input during the test to avoid interference.
