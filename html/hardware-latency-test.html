@@ -32,7 +32,7 @@ cpuLoad.oninput = function() {
   cpuLoadValue = parseInt(cpuLoad.value);
 }
 // IE 11's oninput is broken for input type=range, sigh...
-cpuLoad.onchange = oninput;
+cpuLoad.onchange = cpuLoad.oninput;
 cpuLoad.oninput();
 
 var gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
