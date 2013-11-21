@@ -3,12 +3,16 @@
 <meta http-equiv="x-ua-compatible" content="IE=edge">
 <title>Web Latency Benchmark</title>
 <link rel="stylesheet" href="latency-benchmark.css">
+<style>
+label { display: block; margin: 10px; }
+</style>
 
 <h1>Web Latency Benchmark: Hardware test</h1>
 <canvas id="testCanvas" width="400" height="400" style="border: 10px solid gray; margin-right: 20px; float: left"></canvas>
 <a href="https://www.oculusvr.com/order/latency-tester/">Oculus Latency Tester</a> detected! Point it at the square on the left and press the test button, or 'T' on the keyboard, to run the test.
 <p>
-<label style="visibility:hidden"><input type="checkbox" id="cpuLoad"/> add CPU load</label><br/>
+<label><input type="range" min=0 max=40 value=0 id="cpuLoad"> <span id="cpuLoadText"></span> ms CPU load per frame</label>
+<label><input type="checkbox" id="stopCallingRaf"> Stop calling requestAnimationFrame between tests</label>
 <p>
 <div id="averageMs" style="font-size: 30px; color: white"></div>
 <div id="results"></div>
@@ -18,7 +22,17 @@
 var averageMsDiv = document.getElementById('averageMs');
 var resultsDiv = document.getElementById('results');
 var cpuLoad = document.getElementById('cpuLoad');
+var cpuLoadText = document.getElementById('cpuLoadText');
+var stopCallingRaf = document.getElementById('stopCallingRaf');
 var testCanvas = document.getElementById('testCanvas');
+
+var cpuLoadValue = 0;
+cpuLoad.oninput = function() {
+  cpuLoadText.textContent = cpuLoad.value;
+  cpuLoadValue = parseInt(cpuLoad.value);
+}
+cpuLoad.oninput();
+
 var gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
 if (!gl) {
   resultsDiv.textContent = 'Failed to initialize WebGL. The test will not work.'
@@ -42,22 +56,30 @@ window.onkeydown = function(e) {
   }
 };
 
+var testRunning = false;
+var rafPending = true;
+
 function draw() {
-  requestAnimationFrame(draw);
+  if (!stopCallingRaf.checked || testRunning) {
+    requestAnimationFrame(draw);
+    rafPending = true;
+  } else {
+    rafPending = false;
+  }
   gl.clearColor(color[0], color[1], color[2], 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  if (cpuLoad.checked) {
-    var startTime = Date.now();
-    while(Date.now() - startTime < 14);
-  }
+  var startTime = Date.now();
+  while(Date.now() - startTime < cpuLoadValue);
 }
 draw();
 
 var results = [];
-var testRunning = false;
 function startTest() {
   if (testRunning) return;
   testRunning = true;
+  if (!rafPending) {
+    requestAnimationFrame(draw);
+  }
   var request = new XMLHttpRequest();
   request.open('GET', 'http://localhost:5578/oculusLatencyTester?defeatCache=' + Math.random(), true);
   request.onreadystatechange = function() {
