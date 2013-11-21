@@ -44,6 +44,7 @@ You shouldn't make any changes to the XCode or Visual Studio project files direc
 
 ## TODO
 
+* Bookmarklet or browser extension for injecting a hardware latency test into any web page.
 * Support for more operating systems:
     * Android
     * iOS
