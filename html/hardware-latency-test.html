@@ -11,6 +11,8 @@ label { display: block; margin: 10px; }
 <canvas id="testCanvas" width="400" height="400" style="border: 10px solid gray; margin-right: 20px; float: left"></canvas>
 <a href="https://www.oculusvr.com/order/latency-tester/">Oculus Latency Tester</a> detected! Point it at the square on the left and press the test button, or 'T' on the keyboard, to run the test.
 <p>
+To embed a hardware latency test on any page, use this bookmarklet: <a href="javascript:(function(){document.body.appendChild(document.createElement('script')).src='http://localhost:5578/hardware-latency-test-bookmarklet.js'})()" title="Drag me to the bookmarks bar.">Insert latency test</a>
+<p>
 <label><input type="range" min=0 max=40 value=0 id="cpuLoad"> <span id="cpuLoadText"></span> ms CPU load per frame</label>
 <label><input type="checkbox" id="stopCallingRaf"> Stop calling requestAnimationFrame between tests</label>
 <p>

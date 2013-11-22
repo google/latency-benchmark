@@ -26,6 +26,7 @@
             'html/draw-pattern.js',
             'html/gradient.png',
             'html/hardware-latency-test.html',
+            'html/hardware-latency-test-bookmarklet.js',
             'html/index.html',
             'html/keep-server-alive.js',
             'html/latency-benchmark.css',
