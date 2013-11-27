@@ -218,10 +218,22 @@ void debug_log(const char *message, ...) {
 }
 
 
-bool open_browser(const char *url) {
-  size_t buffer_size = strlen(url) + 100;
+bool open_browser(const char *program, const char *args, const char *url) {
+  //TODO: why the 100 extra bytes?
+  size_t buffer_size = 100;
+  if (program != NULL) {
+    buffer_size += strlen(program);
+  }
+  if (args != NULL) {
+    buffer_size += strlen(args);
+  } else {
+    args = "";
+  }
+  if (url != NULL) {
+    buffer_size += strlen(url);
+  }
   char buffer[buffer_size];
-  sprintf(buffer, "xdg-open %s", url);
+  sprintf(buffer, "%s %s %s", program, args, url);
   system(buffer);
   return true;
 }

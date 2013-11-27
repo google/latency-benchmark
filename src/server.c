@@ -25,9 +25,10 @@
 #include "latency-benchmark.h"
 #include "../third_party/mongoose/mongoose.h"
 #include "oculus.h"
+#include "clioptions.h"
 
 // Serve files from the ./html directory.
-static const char * const document_root = "html";
+char *document_root = "html";
 struct mg_context *mongoose = NULL;
 
 // Runs a latency test and reports the results as JSON written to the given
@@ -226,7 +227,7 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
 }
 
 // This is the entry point called by main().
-void run_server() {
+void run_server(clioptions *opts) {
   assert(mongoose == NULL);
   srand((unsigned int)time(NULL));
   init_oculus();
@@ -250,7 +251,13 @@ void run_server() {
   }
   usleep(0);
 
-  if (!open_browser("http://localhost:5578/")) {
+  char url[64];
+  if (opts->automated) {
+    strcpy(url, "http://localhost:5578/latency-benchmark.html?auto=1");
+  } else {
+    strcpy(url, "http://localhost:5578/");
+  }
+  if (!open_browser(opts->browser, opts->profile, url)) {
     debug_log("Failed to open browser.");
   }
   // Wait for an initial keep-alive connection to be established.

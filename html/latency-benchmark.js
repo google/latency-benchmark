@@ -14,6 +14,47 @@
  * limitations under the License.
  */
 
+
+parseQueryString = function(encodedString, useArrays) {
+  // strip a leading '?' from the encoded string
+  var qstr = (encodedString[0] == "?") ? encodedString.substring(1) : 
+                                         encodedString;
+  var pairs = qstr.replace(/\+/g, "%20").split(/(\&amp\;|\&\#38\;|\&#x26;|\&)/);
+  var o = {};
+  var decode;
+  if (typeof(decodeURIComponent) != "undefined") {
+    decode = decodeURIComponent;
+  } else {
+    decode = unescape;
+  }
+  if (useArrays) {
+    for (var i = 0; i < pairs.length; i++) {
+      var pair = pairs[i].split("=");
+      if (pair.length !== 2) {
+        continue;
+      }
+      var name = decode(pair[0]);
+      var arr = o[name];
+      if (!(arr instanceof Array)) {
+        arr = [];
+        o[name] = arr;
+      }
+      arr.push(decode(pair[1]));
+    }
+  } else {
+    for (i = 0; i < pairs.length; i++) {
+      pair = pairs[i].split("=");
+      if (pair.length !== 2) {
+        continue;
+      }
+      o[decode(pair[0])] = decode(pair[1]);
+    }
+  }
+  return o;
+};
+
+var params = parseQueryString(location.search.substring(1), true);
+
 var cancelEvent = function(e) {
   e.stopPropagation();
   e.preventDefault();
@@ -34,6 +75,7 @@ var reenableInput = function() {
 }
 
 var delayedTests = [];
+var results = {};
 
 var progressMessage = document.getElementById('progressMessage');
 
@@ -78,12 +120,14 @@ var error = function(test, text) {
 };
 var totalScore = 0;
 var totalPossibleScore = 0;
-var addScore = function(value, good, bad, weight) {
+var addScore = function(value, good, bad, weight, name) {
   var score = (value - bad) / (good - bad);
   if (score > 1) score = 1;
   if (score < 0) score = 0;
   totalScore += score * weight;
   totalPossibleScore += weight;
+  results[name] = value;
+  results['total'] = ((totalScore/totalPossibleScore) * 10);
 }
 
 var checkName = function() {
@@ -223,7 +267,7 @@ var inputLatency = function() {
   testMode = TEST_MODES.JAVASCRIPT_LATENCY;
   requestServerTest(test, function() {}, function(response) {
     var frames = response.keyDownLatencyMs/(1000/60);
-    addScore(frames, 0.5, 3, 1);
+    addScore(frames, 0.5, 3, 1, 'Keydown Latency');
     pass(test, frames.toFixed(1) + ' frames latency (lower is better)');
   });
 };
@@ -233,7 +277,7 @@ var scrollLatency = function() {
   testMode = TEST_MODES.SCROLL_LATENCY;
   requestServerTest(test, function() {}, function(response) {
     var frames = response.scrollLatencyMs/(1000/60);
-    addScore(frames, 0.5, 3, 1);
+    addScore(frames, 0.5, 3, 1, 'Scroll Latency');
     pass(test, frames.toFixed(1) + ' frames latency (lower is better)');
   });
 };
@@ -268,17 +312,17 @@ var testJank = function() {
       switch (test.report[i]) {
       case 'css':
         var jank = response.maxCssPauseTimeMs/(1000/60);
-        addScore(jank, 1, 5, .3);
+        addScore(jank, 1, 5, .3, test.name + ' - CSS');
         reports.push('CSS: ' + jank.toFixed(1) + ' frames jank');
         break;
       case 'js':
         var jank = response.maxJSPauseTimeMs/(1000/60);
-        addScore(jank, 1, 5, .3);
+        addScore(jank, 1, 5, .3, test.name + ' - Javascript');
         reports.push('JavaScript: ' + jank.toFixed(1) + ' frames jank');
         break;
       case 'scroll':
         var jank = response.maxScrollPauseTimeMs/(1000/60);
-        addScore(jank, 1, 5, .3);
+        addScore(jank, 1, 5, .3, test.name + ' - Scrolling');
         reports.push('Scrolling: ' + jank.toFixed(1) + ' frames jank');
         break;
       }
@@ -292,6 +336,8 @@ var testNative = function() {
   var test = this;
   testMode = TEST_MODES.NATIVE_REFERENCE;
   requestServerTest(test, function() {}, function(response) {
+    results['Native Reference - frames latency'] = (response.keyDownLatencyMs/(1000/60)).toFixed(1);
+    results['Native Reference - frames jank'] = (response.maxCssPauseTimeMs/(1000/60)).toFixed(1);
     pass(test, ((response.keyDownLatencyMs/(1000/60)).toFixed(1)) + ' frames latency, ' + (response.maxCssPauseTimeMs/(1000/60)).toFixed(1) + ' frames jank (lower is better)');
   });
 };
@@ -349,7 +395,11 @@ var loadGiantImage = function() {
         return;
       }
     }
-    document.body.removeChild(giantImageContainer);
+    try {
+      document.body.removeChild(giantImageContainer);
+    } catch (ex) {
+      // on error, we flood the console with message
+    }
   }
 };
 
@@ -423,9 +473,10 @@ var tests = [
   { name: 'JavaScript jank',
     info: 'Tests responsiveness during JavaScript execution.',
     test: testJank, blocker: cpuLoad, report: ['css', 'scroll'] },
-  { name: 'Image loading jank',
-    info: 'Tests responsiveness during image loading.',
-    test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
+//  { name: 'Image loading jank',
+//    info: 'Tests responsiveness during image loading.',
+//    test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
+
   // These tests work, but are disabled for now to focus on the latency test.
   // { name: 'requestAnimationFrame', test: checkName, toCheck: 'requestAnimationFrame' },
   // { name: 'Canvas 2D', test: checkName, toCheck: 'HTMLCanvasElement' },
@@ -524,6 +575,18 @@ var runNextTest = function(previousTest) {
     progressMessage.style.display = 'none';
     doneMessage.style.display = 'block';
     reenableInput();
+    // TODO: this is Firefox specific. Possibly use an extension for supporting other browsers?
+    if (params.auto == 1) {
+      if (window.dump) {
+        dump('__start_report\n');
+        for (item in results) {
+          dump(item + ', ' + results[item] + '\n');
+        }
+        dump('__end_report\n');
+        dump('__startTimestamp' + Date.now() + '__endTimestamp\n');
+      }
+      quit();
+    }
     // End the test run.
     return;
   }
@@ -544,6 +607,19 @@ var runNextTest = function(previousTest) {
   }
 };
 setTimeout(runNextTest, 100);
+
+function quit() {
+  try {
+    netscape.security.PrivilegeManager.enablePrivilege('UniversalPreferencesRead UniversalPreferencesWrite UniversalXPConnect');
+    var appService = Components.classes['@mozilla.org/toolkit/app-startup;1'].
+      getService(Components.interfaces.nsIAppStartup);
+    var forceQuit  = Components.interfaces.nsIAppStartup.eForceQuit;
+    appService.quit(forceQuit);
+  } catch(ex) {
+    alert(ex);
+    //TODO: is there a better route to take here
+  }
+}
 
 var checkTimeout = function(test) {
   if (!test.finished) {

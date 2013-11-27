@@ -14,11 +14,35 @@
  * limitations under the License.
  */
 
-void run_server(void);
+#include <stdlib.h>
+#include "../clioptions.h"
+
+void run_server(clioptions *opts);
 
 int main(int argc, const char **argv)
 {
-  run_server();
+  clioptions *opts = parse_commandline(argc, argv);
+  if (opts == NULL) {
+    return 1;
+  }
+
+  if (opts->browser == NULL) {
+    char default_browser[] = "xdg-open";
+    opts->browser = malloc(strlen(default_browser) * sizeof(char));
+    strncpy(opts->browser, default_browser, strlen(default_browser));
+  }
+
+  if (opts->profile != NULL) {
+    char args[] = "-no-remote -profile";
+    char *profile = malloc(strlen(opts->profile) * sizeof(char));
+    strncpy(profile, opts->profile, strlen(opts->profile));
+    opts->profile = malloc((strlen(args) + strlen(profile)) * sizeof(char));
+    sprintf(opts->profile, "%s %s", args, profile);
+    free(profile);
+  }
+
+  run_server(opts);
+  free(opts);
   return 0;
 }
 
