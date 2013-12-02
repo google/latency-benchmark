@@ -577,15 +577,18 @@ var runNextTest = function(previousTest) {
     reenableInput();
     // TODO: this is Firefox specific. Possibly use an extension for supporting other browsers?
     if (params.auto == 1) {
-      if (window.dump) {
-        dump('__start_report\n');
-        for (item in results) {
-          dump(item + ', ' + results[item] + '\n');
+      if (params.results) {
+        var x = XMLHttpRequest();
+        var obj = encodeURIComponent(JSON.stringify(results));
+        var url = params.results + "?" + obj;
+        x.open('GET', url, true);
+        x.onreadystatechange = function() {
+          if (x.readyState == 4) {
+            quit();
+          }
         }
-        dump('__end_report\n');
-        dump('__startTimestamp' + Date.now() + '__endTimestamp\n');
+        x.send(obj);
       }
-      quit();
     }
     // End the test run.
     return;

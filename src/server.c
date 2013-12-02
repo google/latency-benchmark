@@ -253,7 +253,7 @@ void run_server(clioptions *opts) {
 
   char url[64];
   if (opts->automated) {
-    strcpy(url, "http://localhost:5578/latency-benchmark.html?auto=1");
+    sprintf(url, "http://localhost:5578/latency-benchmark.html?auto=1\\&results=%s", opts->results);
   } else {
     strcpy(url, "http://localhost:5578/");
   }

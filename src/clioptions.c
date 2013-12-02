@@ -8,12 +8,13 @@ clioptions* parse_commandline(int argc, const char **argv) {
   options->automated = false;
   options->profile = NULL;
   options->browser = NULL;
+  options->results = NULL;
 
   // parse command line arguments
   int c;
 
   //TODO: use getopt_long for better looking cli args
-  while ((c = getopt(argc, argv, "ap:b:d:")) != -1) {
+  while ((c = getopt(argc, argv, "ap:b:d:r:")) != -1) {
     switch(c) {
     case 'a':
       options->automated = true;
@@ -23,6 +24,9 @@ clioptions* parse_commandline(int argc, const char **argv) {
       break;
     case 'b':
       options->browser = optarg;
+      break;
+    case 'r':
+      options->results = optarg;
       break;
     case ':':       
       fprintf(stderr,

@@ -32,6 +32,10 @@ int main(int argc, const char **argv)
     strncpy(opts->browser, default_browser, strlen(default_browser));
   }
 
+  if (opts->results == NULL) {
+    sprintf(opts->results, "");
+  }
+
   if (opts->profile != NULL) {
     char args[] = "-no-remote -profile";
     char *profile = malloc(strlen(opts->profile) * sizeof(char));
