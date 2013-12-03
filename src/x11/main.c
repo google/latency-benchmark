@@ -27,25 +27,25 @@ int main(int argc, const char **argv)
   }
 
   if (opts->browser == NULL) {
-    char default_browser[] = "xdg-open";
-    opts->browser = malloc(strlen(default_browser) * sizeof(char));
-    strncpy(opts->browser, default_browser, strlen(default_browser));
+    opts->browser = "xdg-open";
   }
 
   if (opts->results == NULL) {
-    sprintf(opts->results, "");
+    opts->results = "";
   }
 
   if (opts->profile != NULL) {
     char args[] = "-no-remote -profile";
-    char *profile = malloc(strlen(opts->profile) * sizeof(char));
-    strncpy(profile, opts->profile, strlen(opts->profile));
-    opts->profile = malloc((strlen(args) + strlen(profile)) * sizeof(char));
+    char *profile = strdup(opts->profile);
+    opts->profile = malloc(((strlen(args) + strlen(profile)) * sizeof(char)) + 2);
     sprintf(opts->profile, "%s %s", args, profile);
     free(profile);
   }
 
   run_server(opts);
+  if (opts->profile != NULL) {
+    free(opts->profile);
+  }
   free(opts);
   return 0;
 }

@@ -219,22 +219,28 @@ void debug_log(const char *message, ...) {
 
 
 bool open_browser(const char *program, const char *args, const char *url) {
-  //TODO: why the 100 extra bytes?
-  size_t buffer_size = 100;
+  size_t buffer_size = 3;
   if (program != NULL) {
     buffer_size += strlen(program);
+  } else {
+    return false;
   }
+
   if (args != NULL) {
     buffer_size += strlen(args);
   } else {
     args = "";
   }
-  if (url != NULL) {
-    buffer_size += strlen(url);
+
+  if (url == NULL) {
+    url = "http://localhost:5378";
   }
-  char buffer[buffer_size];
+  buffer_size += strlen(url);
+
+  char *buffer = malloc(buffer_size * sizeof(char));
   sprintf(buffer, "%s %s %s", program, args, url);
   system(buffer);
+  free(buffer);
   return true;
 }
 
