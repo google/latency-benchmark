@@ -473,9 +473,9 @@ var tests = [
   { name: 'JavaScript jank',
     info: 'Tests responsiveness during JavaScript execution.',
     test: testJank, blocker: cpuLoad, report: ['css', 'scroll'] },
-//  { name: 'Image loading jank',
-//    info: 'Tests responsiveness during image loading.',
-//    test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
+  { name: 'Image loading jank',
+    info: 'Tests responsiveness during image loading.',
+    test: testJank, blocker: loadGiantImage, report: ['css', 'js', 'scroll'] },
 
   // These tests work, but are disabled for now to focus on the latency test.
   // { name: 'requestAnimationFrame', test: checkName, toCheck: 'requestAnimationFrame' },
@@ -575,7 +575,6 @@ var runNextTest = function(previousTest) {
     progressMessage.style.display = 'none';
     doneMessage.style.display = 'block';
     reenableInput();
-    // TODO: this is Firefox specific. Possibly use an extension for supporting other browsers?
     if (params.auto == 1) {
       if (params.results) {
         var x = XMLHttpRequest();
@@ -584,7 +583,8 @@ var runNextTest = function(previousTest) {
         x.open('GET', url, true);
         x.onreadystatechange = function() {
           if (x.readyState == 4) {
-            quit();
+            // Navigate to the a different page so we stop keeping the server alive
+            window.location.href = 'http://localhost:5578/404';
           }
         }
         x.send(obj);
@@ -610,19 +610,6 @@ var runNextTest = function(previousTest) {
   }
 };
 setTimeout(runNextTest, 100);
-
-function quit() {
-  try {
-    netscape.security.PrivilegeManager.enablePrivilege('UniversalPreferencesRead UniversalPreferencesWrite UniversalXPConnect');
-    var appService = Components.classes['@mozilla.org/toolkit/app-startup;1'].
-      getService(Components.interfaces.nsIAppStartup);
-    var forceQuit  = Components.interfaces.nsIAppStartup.eForceQuit;
-    appService.quit(forceQuit);
-  } catch(ex) {
-    alert(ex);
-    //TODO: is there a better route to take here
-  }
-}
 
 var checkTimeout = function(test) {
   if (!test.finished) {

@@ -4,8 +4,8 @@
 
 typedef struct {
   bool automated; // is this an automated run, shutdown the browser when done
-  char *profile; // path to the profile to use for the browser
   char *browser; // path to the executable for the browser to launch
+  char *browser_args; // args passed to the browser
   char *results; // path to the executable for the browser to launch
 } clioptions;
 

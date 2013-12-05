@@ -253,11 +253,11 @@ void run_server(clioptions *opts) {
 
   char url[64];
   if (opts->automated) {
-    sprintf(url, "http://localhost:5578/latency-benchmark.html?auto=1\\&results=%s", opts->results);
+    sprintf(url, "http://localhost:5578/latency-benchmark.html?auto=1&results=%s", opts->results);
   } else {
     strcpy(url, "http://localhost:5578/");
   }
-  if (!open_browser(opts->browser, opts->profile, url)) {
+  if (!open_browser(opts->browser, opts->browser_args, url)) {
     debug_log("Failed to open browser.");
   }
   // Wait for an initial keep-alive connection to be established.
@@ -274,5 +274,8 @@ void run_server(clioptions *opts) {
     usleep(1000 * 100);
   }
   mg_stop(mongoose);
+
+  //NOTE: this only will work in automated mode where we fork and get the pid of the child process
+  close_browser();
   mongoose = NULL;
 }

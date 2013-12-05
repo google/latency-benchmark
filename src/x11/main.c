@@ -34,18 +34,11 @@ int main(int argc, const char **argv)
     opts->results = "";
   }
 
-  if (opts->profile != NULL) {
-    char args[] = "-no-remote -profile";
-    char *profile = strdup(opts->profile);
-    opts->profile = malloc(((strlen(args) + strlen(profile)) * sizeof(char)) + 2);
-    sprintf(opts->profile, "%s %s", args, profile);
-    free(profile);
+  if (opts->browser_args == NULL) {
+    opts->browser_args = "";
   }
 
   run_server(opts);
-  if (opts->profile != NULL) {
-    free(opts->profile);
-  }
   free(opts);
   return 0;
 }

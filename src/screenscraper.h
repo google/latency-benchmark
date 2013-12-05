@@ -89,6 +89,7 @@ int usleep(unsigned int microseconds);
 // Opens a new window/tab in the system's default browser.
 // Returns true on success, false on failure.
 bool open_browser(const char *program, const char *args, const char *url);
+bool close_browser();
 
 // Opens a test window that will respond to mouse and keyboard events in the
 // same way as a browser displaying the test page. Running the benchmark with
