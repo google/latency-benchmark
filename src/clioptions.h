@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
+
+#define false   0
+#define true    1
+#define bool int
 
 typedef struct {
   bool automated; // is this an automated run, shutdown the browser when done
