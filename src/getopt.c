@@ -77,7 +77,7 @@
  int   optind = 1;       /* number of the next argv[] to be evaluated    */ 
  int   opterr = 1;       /* non-zero if a question mark should be returned 
                             when a non-valid option character is detected */ 
- char  optopt = NULL;    /* value of the last character we matched */
+ char  optopt;           /* value of the last character we matched */
 
  /* handle possible future character set concerns by putting this in a macro */ 
  #define _next_char(string)  (char)(*(string+1)) 
