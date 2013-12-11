@@ -27,6 +27,11 @@
 #include "oculus.h"
 #include "clioptions.h"
 
+//MSVC doesn't hvae snprintf defined, for our use, this works- beware they are not identical
+#ifdef WIN32
+#define snprintf sprintf_s
+#endif
+
 // Serve files from the ./html directory.
 char *document_root = "html";
 struct mg_context *mongoose = NULL;
@@ -254,7 +259,7 @@ void run_server(clioptions *opts) {
   char url[2048];
   char *baseurl = "http://localhost:5578/";
   if (opts->automated) {
-    int len = snprintf(NULL, 0, "%slatency-benchmark.html?auto=1&results=%s", baseurl, opts->results);
+    int len = strlen(baseurl) + strlen(opts->results) + strlen("latency-benchmark.html?auto=1&results=");
     len = snprintf(url, len+1, "%slatency-benchmark.html?auto=1&results=%s", baseurl, opts->results);
     url[len] = (char)NULL;
   } else {
