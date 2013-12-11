@@ -251,12 +251,17 @@ void run_server(clioptions *opts) {
   }
   usleep(0);
 
-  char url[64];
+  char url[2048];
+  char *baseurl = "http://localhost:5578/";
   if (opts->automated) {
-    sprintf(url, "http://localhost:5578/latency-benchmark.html?auto=1&results=%s", opts->results);
+    int len = snprintf(NULL, 0, "%slatency-benchmark.html?auto=1&results=%s", baseurl, opts->results);
+    len = snprintf(url, len+1, "%slatency-benchmark.html?auto=1&results=%s", baseurl, opts->results);
+    url[len] = (char)NULL;
   } else {
-    strcpy(url, "http://localhost:5578/");
+    strncpy(url, baseurl, strlen(baseurl));
+    url[strlen(baseurl)] = (char)NULL;
   }
+
   if (!open_browser(opts->browser, opts->browser_args, url)) {
     debug_log("Failed to open browser.");
   }
@@ -275,7 +280,10 @@ void run_server(clioptions *opts) {
   }
   mg_stop(mongoose);
 
-  //NOTE: this only will work in automated mode where we fork and get the pid of the child process
-  close_browser();
+  if (opts->automated) {
+    //NOTE: this only will work in automated mode where we fork and get the pid of the child process
+    close_browser();
+  }
+
   mongoose = NULL;
 }

@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <wordexp.h>
 
 
 
@@ -217,42 +218,6 @@ void debug_log(const char *message, ...) {
 #endif
 }
 
-char** str_split(char *str, char* delim) {
-  char **result = NULL;
-  int count = 0;
-  char *tmp = str;
-  char *last_delim = 0;
-
-  // Count how many elements will be extracted.
-  while (*tmp) {
-    if (delim[0] == *tmp) {
-      count++;
-      last_delim = tmp;
-    }
-    tmp++;
-  }
-
-  // Add space for trailing token.
-  count += last_delim < (str + strlen(str)-1);
-
-  // Add space for terminating null string so caller
-  // knows where the list of returned strings ends.
-  count++;
-
-  result = malloc(sizeof(char*) * count);
-  if (!result)
-    return result;
-
-  int i = 0;
-  char* token = strtok(str, delim);
-  while (token) {
-    result[i++] = strdup(token);
-    token = strtok(NULL, delim);
-  }
-  result[i] = 0;
-  return result;
-}
-
 static pid_t browser_process_pid = 0;
 
 bool open_browser(const char *program, const char *args, const char *url) {
@@ -279,12 +244,10 @@ bool open_browser(const char *program, const char *args, const char *url) {
     pid_t pid = fork();
     if (!pid) {
       // child process, launch the browser!
-      char **args = str_split(buffer, " ");
-      execv(args[0], args);
-
-      // Give the child a second to start up before freeing the args
-      usleep(3000000);
-      free(args);
+      wordexp_t args;
+      wordexp(buffer, &args, 0);
+      execv(args.we_wordv[0], args.we_wordv);
+      exit(1);
     } else {
       browser_process_pid = pid;
     }
