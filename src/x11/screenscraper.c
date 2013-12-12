@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <wordexp.h>
 
 
 
@@ -217,15 +218,57 @@ void debug_log(const char *message, ...) {
 #endif
 }
 
+static pid_t browser_process_pid = 0;
 
-bool open_browser(const char *url) {
-  size_t buffer_size = strlen(url) + 100;
-  char buffer[buffer_size];
-  sprintf(buffer, "xdg-open %s", url);
-  system(buffer);
+bool open_browser(const char *program, const char *args, const char *url) {
+  size_t buffer_size = 0;
+
+  if (args == NULL) {
+    args = "";
+  }
+  buffer_size += strlen(args);
+
+  // NOTE: url is already defined in server.c
+  buffer_size += strlen(url);
+
+  // NOTE: program is defined in main.c
+  buffer_size += strlen(program);
+
+  buffer_size += 3; // Account for spaces and EOL
+  char *buffer = malloc(buffer_size * sizeof(char));
+  sprintf(buffer, "%s %s %s", program, args, url);
+
+  if (strcmp(program, "xdg-open") == 0) {
+    system(buffer);
+  } else {
+    pid_t pid = fork();
+    if (!pid) {
+      // child process, launch the browser!
+      wordexp_t args;
+      wordexp(buffer, &args, 0);
+      execv(args.we_wordv[0], args.we_wordv);
+      exit(1);
+    } else {
+      browser_process_pid = pid;
+    }
+  }
+  free(buffer);
   return true;
 }
 
+bool close_browser() {
+  if (browser_process_pid == 0) {
+    debug_log("Browser not open");
+    return false;
+  }
+  int r = kill(browser_process_pid, SIGKILL);
+  browser_process_pid = 0;
+  if (r) {
+    debug_log("Failed to close browser window");
+    return false;
+  }
+  return true;
+}
 
 static bool extension_supported(const char *name) {
   const char *extensions = glXQueryExtensionsString(display, DefaultScreen(display));

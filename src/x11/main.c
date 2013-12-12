@@ -14,11 +14,32 @@
  * limitations under the License.
  */
 
-void run_server(void);
+#include <stdlib.h>
+#include "../clioptions.h"
+
+void run_server(clioptions *opts);
 
 int main(int argc, const char **argv)
 {
-  run_server();
+  clioptions *opts = parse_commandline(argc, argv);
+  if (opts == NULL) {
+    return 1;
+  }
+
+  if (opts->browser == NULL) {
+    opts->browser = "xdg-open";
+  }
+
+  if (opts->results == NULL) {
+    opts->results = "";
+  }
+
+  if (opts->browser_args == NULL) {
+    opts->browser_args = "";
+  }
+
+  run_server(opts);
+  free(opts);
   return 0;
 }
 

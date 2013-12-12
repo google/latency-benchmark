@@ -10,6 +10,9 @@
         'src/server.c',
         'src/oculus.cpp',
         'src/oculus.h',
+        'src/getopt.c',
+        'src/clioptions.c',
+        'src/clioptions.h',
         '<(INTERMEDIATE_DIR)/packaged-html-files.c',
       ],
       'dependencies': [
@@ -26,7 +29,6 @@
             'html/draw-pattern.js',
             'html/gradient.png',
             'html/hardware-latency-test.html',
-            'html/hardware-latency-test-bookmarklet.js',
             'html/index.html',
             'html/keep-server-alive.js',
             'html/latency-benchmark.css',

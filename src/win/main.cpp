@@ -17,8 +17,9 @@
 #include "stdafx.h"
 #include "../latency-benchmark.h"
 #include "../screenscraper.h"
+#include "../clioptions.h"
 
-void run_server(void);
+void run_server(clioptions*);
 
 static BOOL (APIENTRY *wglSwapIntervalEXT)(int) = 0;
 static HGLRC context = NULL;
@@ -177,7 +178,34 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
   // Prevent automatic DPI scaling.
   SetProcessDPIAware();
 
-  if (__argc == 1) {
+  clioptions *opts = parse_commandline(__argc, (const char **)__argv);
+  if (opts == NULL) {
+    return 1;
+  }
+
+  int cliopts = 1;
+  if (opts->automated)
+	  cliopts++;
+
+  if (opts->browser == NULL) {
+    opts->browser = "";
+  } else {
+	  cliopts += 2;
+  }
+
+  if (opts->results == NULL) {
+    opts->results = "";
+  } else {
+	  cliopts += 2;
+  }
+
+  if (opts->browser_args == NULL) {
+    opts->browser_args = "";
+  } else {
+	  cliopts += 2;
+  }
+
+  if (__argc == cliopts) {
     debug_log("running server");
     HDC desktop = GetDC(NULL);
     assert(desktop);
@@ -188,21 +216,23 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
       return 1;
     }
     ReleaseDC(NULL, desktop);
-    run_server();
+    run_server(opts);
   }
+  free(opts);
+
   debug_log("opening native reference window");
-  if (__argc != 3) {
-    debug_log("Unrecognized number of arguments");
+  if (__argc != (cliopts+2)) {
+    debug_log("Unrecognized number of arguments: %d", __argc);
     return 1;
   }
   // The first argument is the magic pattern to draw on the window, encoded as hex.
   memset(pattern, 0, sizeof(pattern));
-  if (!parse_hex_magic_pattern(__argv[1], pattern)) {
+  if (!parse_hex_magic_pattern(__argv[cliopts], pattern)) {
     debug_log("Failed to parse pattern");
     return 1;
   }
   // The second argument is the handle of the parent process.
-  HANDLE parent_process = (HANDLE)_strtoui64(__argv[2], NULL, 16);
+  HANDLE parent_process = (HANDLE)_strtoui64(__argv[cliopts+1], NULL, 16);
   message_loop(parent_process);
   return 0;
 }

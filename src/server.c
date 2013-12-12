@@ -25,9 +25,15 @@
 #include "latency-benchmark.h"
 #include "../third_party/mongoose/mongoose.h"
 #include "oculus.h"
+#include "clioptions.h"
+
+//MSVC doesn't hvae snprintf defined, for our use, this works- beware they are not identical
+#ifdef WIN32
+#define snprintf sprintf_s
+#endif
 
 // Serve files from the ./html directory.
-static const char * const document_root = "html";
+char *document_root = "html";
 struct mg_context *mongoose = NULL;
 
 // Runs a latency test and reports the results as JSON written to the given
@@ -226,7 +232,7 @@ static int mongoose_begin_request_callback(struct mg_connection *connection) {
 }
 
 // This is the entry point called by main().
-void run_server() {
+void run_server(clioptions *opts) {
   assert(mongoose == NULL);
   srand((unsigned int)time(NULL));
   init_oculus();
@@ -250,7 +256,18 @@ void run_server() {
   }
   usleep(0);
 
-  if (!open_browser("http://localhost:5578/")) {
+  char url[2048];
+  char *baseurl = "http://localhost:5578/";
+  if (opts->automated) {
+    int len = strlen(baseurl) + strlen(opts->results) + strlen("latency-benchmark.html?auto=1&results=");
+    len = snprintf(url, len+1, "%slatency-benchmark.html?auto=1&results=%s", baseurl, opts->results);
+    url[len] = (char)NULL;
+  } else {
+    strncpy(url, baseurl, strlen(baseurl));
+    url[strlen(baseurl)] = (char)NULL;
+  }
+
+  if (!open_browser(opts->browser, opts->browser_args, url)) {
     debug_log("Failed to open browser.");
   }
   // Wait for an initial keep-alive connection to be established.
@@ -267,5 +284,11 @@ void run_server() {
     usleep(1000 * 100);
   }
   mg_stop(mongoose);
+
+  if (opts->automated) {
+    //NOTE: this only will work in automated mode where we fork and get the pid of the child process
+    close_browser();
+  }
+
   mongoose = NULL;
 }

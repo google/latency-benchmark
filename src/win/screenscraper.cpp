@@ -368,14 +368,46 @@ int usleep(unsigned int microseconds) {
   return 0;
 }
 
+HANDLE browser_process_handle = NULL;
 
-bool open_browser(const char *url) {
+bool open_browser(const char *program, const char *args, const char *url) {
   // Recommended by:
   // http://msdn.microsoft.com/en-us/library/windows/desktop/bb762153(v=vs.85).aspx
-  HRESULT hr =
+
+  if (program == NULL || strcmp(program, "") == 0) {
+	HRESULT hr =
       CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-  assert(hr == S_OK);
-  return 32 < (int)ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+    assert(hr == S_OK);
+    return 32 < (int)ShellExecuteA(NULL, "open", url, args, NULL, SW_SHOWNORMAL);
+  }
+
+  PROCESS_INFORMATION process_info;
+  STARTUPINFO startup_info;
+  memset(&startup_info, 0, sizeof(startup_info));
+  startup_info.cb = sizeof(startup_info);
+  char command_line[4096];
+  sprintf_s(command_line, sizeof(command_line), "%s %s %s", program, args, url);
+  if (!CreateProcess(NULL, command_line, NULL, NULL, TRUE, 0, NULL, NULL,
+                     &startup_info, &process_info)) {
+    debug_log("Failed to start process");
+    return false;
+  }
+  browser_process_handle = process_info.hProcess;
+  return true;
+}
+
+bool close_browser() {
+  if (browser_process_handle == NULL) {
+    debug_log("browser not open");
+    return false;
+  }
+  if (!TerminateProcess(browser_process_handle, 0)) {
+    debug_log("Failed to terminate process");
+    browser_process_handle = NULL;
+    return false;
+  }
+  browser_process_handle = NULL;
+  return true;
 }
 
 HANDLE window_process_handle = NULL;
