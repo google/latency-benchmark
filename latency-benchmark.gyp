@@ -10,7 +10,6 @@
         'src/server.c',
         'src/oculus.cpp',
         'src/oculus.h',
-        'src/getopt.c',
         'src/clioptions.c',
         'src/clioptions.h',
         '<(INTERMEDIATE_DIR)/packaged-html-files.c',
@@ -52,9 +51,10 @@
         }],
         ['OS=="win"', {
           'sources': [
+            'src/getopt.c',
             'src/win/main.cpp',
             'src/win/screenscraper.cpp',
-			'src/win/stdafx.h',
+            'src/win/stdafx.h',
           ],
         }],
         ['OS=="mac"', {

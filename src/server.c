@@ -249,6 +249,7 @@ void run_server(clioptions *opts) {
   struct mg_callbacks callbacks;
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = mongoose_begin_request_callback;
+
   mongoose = mg_start(&callbacks, NULL, options);
   if (!mongoose) {
     debug_log("Failed to start server.");
@@ -258,21 +259,28 @@ void run_server(clioptions *opts) {
 
   char url[2048];
   char *baseurl = "http://localhost:5578/";
-  if (opts->automated) {
-    int len = strlen(baseurl) + strlen(opts->results) + strlen("latency-benchmark.html?auto=1&results=");
-    len = snprintf(url, len+1, "%slatency-benchmark.html?auto=1&results=%s", baseurl, opts->results);
-    url[len] = (char)NULL;
-  } else {
-    strncpy(url, baseurl, strlen(baseurl));
-    url[strlen(baseurl)] = (char)NULL;
+  char *results_url = opts->results_url;
+  if (results_url == NULL) {
+    results_url = "";
   }
+  if (opts->automated) {
+    snprintf(url, sizeof(url), "%slatency-benchmark.html?auto=1&results=%s", baseurl, results_url);
+  } else {
+    snprintf(url, sizeof(url), "%s", baseurl);
+  }
+  url[sizeof(url) - 1] = '\0';
 
   if (!open_browser(opts->browser, opts->browser_args, url)) {
     debug_log("Failed to open browser.");
   }
   // Wait for an initial keep-alive connection to be established.
+  int64_t start_time = get_nanoseconds();
   while(keep_alives == 0) {
     usleep(1000 * 1000);
+    if (opts->automated && get_nanoseconds() - start_time > 5 * 60 *nanoseconds_per_second) {
+      // 5 minute timeout in automated mode.
+      break;
+    }
   }
   // Wait for all keep-alive connections to be closed.
   while(keep_alives > 0) {
@@ -282,11 +290,15 @@ void run_server(clioptions *opts) {
     // http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals
     // http://ricochen.wordpress.com/2011/07/14/debugging-with-gdb-a-couple-of-notes/
     usleep(1000 * 100);
+    if (opts->automated && get_nanoseconds() - start_time > 5 * 60 *nanoseconds_per_second) {
+      // 5 minute timeout in automated mode.
+      break;
+    }
   }
   mg_stop(mongoose);
 
   if (opts->automated) {
-    //NOTE: this only will work in automated mode where we fork and get the pid of the child process
+    // NOTE: this only will work in automated mode where we fork and get the pid of the child process
     close_browser();
   }
 

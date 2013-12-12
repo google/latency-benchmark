@@ -20,6 +20,7 @@
 #include <mach/mach_time.h>
 #include "../latency-benchmark.h"
 #include "screenscraper.h"
+#include "clioptions.h"
 
 
 NSOpenGLContext *context;
@@ -75,25 +76,27 @@ static CVReturn vsync_callback(
 @end
 
 
-void run_server(void);
+void run_server(clioptions *options);
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
   // SIGPIPE will terminate the process if we write to a closed socket, unless
   // we disable it like so. Note that GDB/LLDB will stop on SIGPIPE anyway
   // unless you configure them not to.
   // http://stackoverflow.com/questions/10431579/permanently-configuring-lldb-in-xcode-4-3-2-not-to-stop-on-signals
   signal(SIGPIPE, SIG_IGN);
-  // If we have no arguments, run the test server.
-  if (argc <= 1) {
-    run_server();
-    return 0;
+
+  clioptions options;
+  parse_commandline(argc, argv, &options);
+  // Unless -p was specified, run the test server.
+  if (!options.magic_pattern) {
+    run_server(&options);
+    exit(0);
   }
-  // If we have arguments, assume we are a child process of a server, and our
+  // If -p was specified, we must be a child process of a server, and our
   // job is to create a reference test window.
   memset(pattern, 0, sizeof(pattern));
-  debug_log("argument 1: %s", argv[1]);
-  if (!parse_hex_magic_pattern(argv[1], pattern)) {
+  if (!parse_hex_magic_pattern(options.magic_pattern, pattern)) {
     debug_log("Failed to parse pattern.");
     return 1;
   }

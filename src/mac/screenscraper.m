@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <wordexp.h>
 #import "../screenscraper.h"
 #import "../latency-benchmark.h"
 #import <Cocoa/Cocoa.h>
@@ -152,10 +153,59 @@ void debug_log(const char *message, ...) {
 #endif
 }
 
-bool open_browser(const char *url) {
+static pid_t browser_process_pid = 0;
+
+bool open_browser(const char *program, const char *args, const char *url) {
+  assert(url);
+  if (browser_process_pid) {
+    debug_log("Warning: calling open_browser, but browser already open.");
+  }
+  if (program == NULL) {
     return [[NSWorkspace sharedWorkspace] openURL:
-        [NSURL URLWithString:[NSString stringWithUTF8String:url]]];
+            [NSURL URLWithString:[NSString stringWithUTF8String:url]]];
+  }
+  if (args == NULL) {
+    args = "";
+  }
+
+  char command_line[4096];
+  snprintf(command_line, sizeof(command_line), "'%s' %s '%s'", program, args, url);
+  command_line[sizeof(command_line) - 1] = '\0';
+
+  wordexp_t expanded_args;
+  memset(&expanded_args, 0, sizeof(expanded_args));
+  // On OS X, wordexp requires SIGCHLD. See: http://stackoverflow.com/questions/20534788/why-does-wordexp-fail-with-wrde-syntax-on-os-x
+  signal(SIGCHLD, SIG_DFL);
+  int result = wordexp(command_line, &expanded_args, 0);
+  signal(SIGCHLD, SIG_IGN);
+  if (result) {
+    debug_log("Failed to parse command line: %s", command_line);
+    return false;
+  }
+  browser_process_pid = fork();
+  if (!browser_process_pid) {
+    // child process, launch the browser!
+    execv(expanded_args.we_wordv[0], expanded_args.we_wordv);
+    exit(1);
+  }
+  wordfree(&expanded_args);
+  return true;
 }
+
+bool close_browser() {
+  if (browser_process_pid == 0) {
+    debug_log("Browser not open");
+    return false;
+  }
+  int r = kill(browser_process_pid, SIGKILL);
+  browser_process_pid = 0;
+  if (r) {
+    debug_log("Failed to close browser window");
+    return false;
+  }
+  return true;
+}
+
 
 pid_t window_process_pid = 0;
 
@@ -177,7 +227,7 @@ bool open_native_reference_window(uint8_t *test_pattern_for_window) {
     // Child process. It would be nice to just call into Cocoa from here, but
     // Cocoa can't handle running after a call to fork(), so instead we must
     // restart the process.
-    execl(path, path, hex_pattern, NULL);
+    execl(path, path, "-p", hex_pattern, NULL);
   }
   // Parent process. Wait for the child to launch and show its window before
   // returning.

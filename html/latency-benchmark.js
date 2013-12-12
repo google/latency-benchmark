@@ -577,17 +577,15 @@ var runNextTest = function(previousTest) {
     reenableInput();
     if (params.auto == 1) {
       if (params.results) {
-        var x = XMLHttpRequest();
-        var obj = encodeURIComponent(JSON.stringify(results));
-        var url = params.results + "?" + obj;
-        x.open('GET', url, true);
-        x.onreadystatechange = function() {
-          if (x.readyState == 4) {
-            // Navigate to the a different page so we stop keeping the server alive
-            window.location.href = 'http://localhost:5578/404';
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', params.results, true);
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState >= 4) {
+            // Navigate to a different page so we stop keeping the server alive.
+            window.location.href = 'about:blank';
           }
         }
-        x.send(obj);
+        xhr.send(JSON.stringify(results, undefined, 2));
       }
     }
     // End the test run.
