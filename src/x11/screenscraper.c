@@ -221,38 +221,34 @@ void debug_log(const char *message, ...) {
 static pid_t browser_process_pid = 0;
 
 bool open_browser(const char *program, const char *args, const char *url) {
-  size_t buffer_size = 0;
-
+  assert(url);
+  if (browser_process_pid) {
+    debug_log("Warning: calling open_browser, but browser already open.");
+  }
+  if (program == NULL) {
+    program = "xdg-open";
+  }
   if (args == NULL) {
     args = "";
   }
-  buffer_size += strlen(args);
 
-  // NOTE: url is already defined in server.c
-  buffer_size += strlen(url);
+  char command_line[4096];
+  snprintf(command_line, sizeof(command_line), "'%s' %s '%s'", program, args, url);
+  command_line[sizeof(command_line) - 1] = '\0';
 
-  // NOTE: program is defined in main.c
-  buffer_size += strlen(program);
-
-  buffer_size += 3; // Account for spaces and EOL
-  char *buffer = malloc(buffer_size * sizeof(char));
-  sprintf(buffer, "%s %s %s", program, args, url);
-
-  if (strcmp(program, "xdg-open") == 0) {
-    system(buffer);
-  } else {
-    pid_t pid = fork();
-    if (!pid) {
-      // child process, launch the browser!
-      wordexp_t args;
-      wordexp(buffer, &args, 0);
-      execv(args.we_wordv[0], args.we_wordv);
-      exit(1);
-    } else {
-      browser_process_pid = pid;
-    }
+  wordexp_t expanded_args;
+  int result = wordexp(command_line, &expanded_args, 0);
+  if (result) {
+    debug_log("Failed to parse command line: %s", command_line);
+    return false;
   }
-  free(buffer);
+  browser_process_pid = fork();
+  if (!browser_process_pid) {
+    // child process, launch the browser!
+    execvp(expanded_args.we_wordv[0], expanded_args.we_wordv);
+    exit(1);
+  }
+  wordfree(&expanded_args);
   return true;
 }
 

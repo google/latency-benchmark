@@ -21,25 +21,9 @@ void run_server(clioptions *opts);
 
 int main(int argc, const char **argv)
 {
-  clioptions *opts = parse_commandline(argc, argv);
-  if (opts == NULL) {
-    return 1;
-  }
-
-  if (opts->browser == NULL) {
-    opts->browser = "xdg-open";
-  }
-
-  if (opts->results == NULL) {
-    opts->results = "";
-  }
-
-  if (opts->browser_args == NULL) {
-    opts->browser_args = "";
-  }
-
-  run_server(opts);
-  free(opts);
+  clioptions opts;
+  parse_commandline(argc, argv, &opts);
+  run_server(&opts);
   return 0;
 }
 
