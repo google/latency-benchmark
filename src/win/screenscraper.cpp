@@ -419,7 +419,7 @@ bool open_native_reference_window(uint8_t *test_pattern_for_window) {
   // reference window process. If that's too painful, you can configure
   // Visual Studio to pass arguments on startup to debug the native reference
   // window code in isolation. Here are some sample arguments that will work:
-  // 2923BEE16CD6529049F1BBE9 0
+  // -p 2923BEE16CD6529049F1BBE9 -h 0
 
   if (window_process_handle != NULL) {
     debug_log("native window already open");
@@ -439,7 +439,7 @@ bool open_native_reference_window(uint8_t *test_pattern_for_window) {
     debug_log("DuplicateHandle failed");
     return false;
   }
-  sprintf_s(command_line, sizeof(command_line), "%s %s %X", GetCommandLine(),
+  sprintf_s(command_line, sizeof(command_line), "%s -p %s -h %X", GetCommandLine(),
             hex_pattern, current_process_handle);
   if (!CreateProcess(NULL, command_line, NULL, NULL, TRUE, 0, NULL, NULL,
                      &startup_info, &process_info)) {

@@ -178,61 +178,34 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
   // Prevent automatic DPI scaling.
   SetProcessDPIAware();
 
-  clioptions *opts = parse_commandline(__argc, (const char **)__argv);
-  if (opts == NULL) {
-    return 1;
-  }
+  clioptions opts;
+  parse_commandline(__argc, (const char **)__argv, &opts);
 
-  int cliopts = 1;
-  if (opts->automated)
-	  cliopts++;
-
-  if (opts->browser == NULL) {
-    opts->browser = "";
-  } else {
-	  cliopts += 2;
-  }
-
-  if (opts->results == NULL) {
-    opts->results = "";
-  } else {
-	  cliopts += 2;
-  }
-
-  if (opts->browser_args == NULL) {
-    opts->browser_args = "";
-  } else {
-	  cliopts += 2;
-  }
-
-  if (__argc == cliopts) {
-    debug_log("running server");
-    HDC desktop = GetDC(NULL);
-    assert(desktop);
-    if (GetDeviceCaps(desktop, LOGPIXELSX) != 96) {
-      MessageBox(NULL, "Unfortunately, due to browser bugs you must set the Windows DPI scaling factor to \"100%\" or \"Smaller\" (96 DPI) for this test to work. Please change it and reboot.",
-                 "Unsupported DPI", MB_ICONERROR | MB_OK);
-      WinExec("DpiScaling.exe", SW_NORMAL);
+  if (opts.magic_pattern) {
+    assert(opts.parent_handle);
+    debug_log("opening native reference window");
+    // The -p argument is the magic pattern to draw on the window, encoded as hex.
+    memset(pattern, 0, sizeof(pattern));
+    if (!parse_hex_magic_pattern(opts.magic_pattern, pattern)) {
+      debug_log("Failed to parse pattern");
       return 1;
     }
-    ReleaseDC(NULL, desktop);
-    run_server(opts);
+    // The -h argument is the HANDLE of the parent process, encoded as hex.
+    HANDLE parent_process = (HANDLE)_strtoui64(opts.parent_handle, NULL, 16);
+    message_loop(parent_process);
+    return 0;
   }
-  free(opts);
 
-  debug_log("opening native reference window");
-  if (__argc != (cliopts+2)) {
-    debug_log("Unrecognized number of arguments: %d", __argc);
+  debug_log("running server");
+  HDC desktop = GetDC(NULL);
+  assert(desktop);
+  if (GetDeviceCaps(desktop, LOGPIXELSX) != 96) {
+    MessageBox(NULL, "Unfortunately, due to browser bugs you must set the Windows DPI scaling factor to \"100%\" or \"Smaller\" (96 DPI) for this test to work. Please change it and reboot.",
+                "Unsupported DPI", MB_ICONERROR | MB_OK);
+    WinExec("DpiScaling.exe", SW_NORMAL);
     return 1;
   }
-  // The first argument is the magic pattern to draw on the window, encoded as hex.
-  memset(pattern, 0, sizeof(pattern));
-  if (!parse_hex_magic_pattern(__argv[cliopts], pattern)) {
-    debug_log("Failed to parse pattern");
-    return 1;
-  }
-  // The second argument is the handle of the parent process.
-  HANDLE parent_process = (HANDLE)_strtoui64(__argv[cliopts+1], NULL, 16);
-  message_loop(parent_process);
+  ReleaseDC(NULL, desktop);
+  run_server(&opts);
   return 0;
 }

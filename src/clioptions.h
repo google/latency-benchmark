@@ -11,6 +11,8 @@ typedef struct {
   char *magic_pattern; // When launching a native reference test window, this
                        // contains the magic pattern to draw, encoded in
                        // hexadecimal.
+  char *parent_handle; // On Windows, this option is passed to child processes
+                       // holding the HANDLE value of their parent.
 } clioptions;
 
 void parse_commandline(int argc, const char **argv, clioptions *options);

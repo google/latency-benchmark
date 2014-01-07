@@ -24,7 +24,7 @@ void parse_commandline(int argc, const char **argv, clioptions *options) {
   int c;
 
   //TODO: use getopt_long for better looking cli args
-  while ((c = getopt(argc, (char **)argv, "ab:d:r:e:p:")) != -1) {
+  while ((c = getopt(argc, (char **)argv, "ab:d:r:e:p:h:")) != -1) {
     switch(c) {
     case 'a':
       options->automated = true;
@@ -41,6 +41,9 @@ void parse_commandline(int argc, const char **argv, clioptions *options) {
     case 'p':
       options->magic_pattern = optarg;
       break;
+    case 'h':
+      options->parent_handle = optarg;
+      break;
     case ':':
       fprintf(stderr, "Option -%c requires an operand\n", optopt);
       print_usage_and_exit();
@@ -55,7 +58,7 @@ void parse_commandline(int argc, const char **argv, clioptions *options) {
   if (options->magic_pattern) {
     if (options->automated || options->browser || options->results_url ||
         options->browser_args) {
-      fprintf(stderr, "-p is incompatible with all other options.\n");
+      fprintf(stderr, "-p is incompatible with all other options except -h.\n");
       print_usage_and_exit();
     }
   }

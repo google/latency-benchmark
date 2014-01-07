@@ -51,7 +51,7 @@
         }],
         ['OS=="win"', {
           'sources': [
-            'src/getopt.c',
+            'src/win/getopt.c',
             'src/win/main.cpp',
             'src/win/screenscraper.cpp',
             'src/win/stdafx.h',
