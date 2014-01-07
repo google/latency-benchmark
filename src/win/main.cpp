@@ -158,6 +158,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
   _CrtSetReportHook(CrtDbgHook);
   SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX |
       SEM_NOOPENFILEERRORBOX);
+  // Make stderr/stdout work from a non-console app.
+  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    freopen("CONOUT$", "wb", stdout);
+    freopen("CONOUT$", "wb", stderr);
+  }
 
   // The Visual Studio debugger starts us in the build\ subdirectory by
   // default, which will prevent us from finding the test files in the html\
