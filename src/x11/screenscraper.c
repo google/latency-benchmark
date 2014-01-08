@@ -246,6 +246,7 @@ bool open_browser(const char *program, const char *args, const char *url) {
   if (!browser_process_pid) {
     // child process, launch the browser!
     execvp(expanded_args.we_wordv[0], expanded_args.we_wordv);
+    debug_log("Failed to execute browser!");
     exit(1);
   }
   wordfree(&expanded_args);
