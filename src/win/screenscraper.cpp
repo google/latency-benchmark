@@ -381,12 +381,16 @@ bool open_browser(const char *program, const char *args, const char *url) {
     return 32 < (int)ShellExecuteA(NULL, "open", url, args, NULL, SW_SHOWNORMAL);
   }
 
+  if (args == NULL) {
+    args = "";
+  }
+  char command_line[4096];
+  sprintf_s(command_line, sizeof(command_line), "\"%s\" %s \"%s\"", program, args, url);
+
   PROCESS_INFORMATION process_info;
   STARTUPINFO startup_info;
   memset(&startup_info, 0, sizeof(startup_info));
   startup_info.cb = sizeof(startup_info);
-  char command_line[4096];
-  sprintf_s(command_line, sizeof(command_line), "%s %s %s", program, args, url);
   if (!CreateProcess(NULL, command_line, NULL, NULL, TRUE, 0, NULL, NULL,
                      &startup_info, &process_info)) {
     debug_log("Failed to start process");
@@ -439,7 +443,12 @@ bool open_native_reference_window(uint8_t *test_pattern_for_window) {
     debug_log("DuplicateHandle failed");
     return false;
   }
-  sprintf_s(command_line, sizeof(command_line), "%s -p %s -h %X", GetCommandLine(),
+  int numArgs;
+  HMODULE exe = GetModuleHandle(NULL);
+  char filename_of_exe[2048];
+  DWORD result = GetModuleFileName(exe, filename_of_exe, sizeof(filename_of_exe));
+  assert(result);
+  sprintf_s(command_line, sizeof(command_line), "\"%s\" -p %s -h %X", filename_of_exe,
             hex_pattern, current_process_handle);
   if (!CreateProcess(NULL, command_line, NULL, NULL, TRUE, 0, NULL, NULL,
                      &startup_info, &process_info)) {

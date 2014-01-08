@@ -9,8 +9,8 @@ extern char optopt;
 int getopt(int, char **, char *);
 
 void print_usage_and_exit() {
-  fprintf(stderr, "usage: latency-benchmark [-a [-r url_to_post_results_to]]\n");
-  fprintf(stderr, "           [-b path_to_browser_executable [-e arguments_for_browser] ]\n");
+  fprintf(stderr, "usage: latency-benchmark -a -b path_to_browser_executable\n");
+  fprintf(stderr, "           [-r url_to_post_results_to] [-e arguments_for_browser]\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "Measures input latency and jank in web browsers. Specify -a, -b,\n");
   fprintf(stderr, "and -r to automatically run the test and report results to a server.\n");
