@@ -10,7 +10,7 @@ The Web Latency Benchmark is a new kind of benchmark that tests your browser's r
 
 ## New: Oculus Latency Tester support
 
-The [Oculus Latency Tester](https://www.oculusvr.com/order/latency-tester/) is a hardware device with a light sensor that can measure end-to-end latency from USB input to pixels changing on the screen. This kind of hardware-based measurement accounts for all possible sources of latency. It's the most complete and accurate measurement possible, and it's now supported by the Web Latency Benchmark. Just plug it in and you'll see a special test page.
+The [Oculus Latency Tester](https://www.oculus.com/blog/latency-tester-pre-orders-now-open/) is a hardware device with a light sensor that can measure end-to-end latency from USB input to pixels changing on the screen. This kind of hardware-based measurement accounts for all possible sources of latency. It's the most complete and accurate measurement possible, and it's now supported by the Web Latency Benchmark. Just plug it in and you'll see a special test page.
 
 ## New: Automated testing
 
